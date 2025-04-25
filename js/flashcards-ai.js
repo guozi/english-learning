@@ -1,4 +1,5 @@
-// 闪卡模块的JavaScript功能实现
+// 闪卡模块的JavaScript功能实现 - AI增强版
+
 // 导入AI服务
 import aiService from './ai-service.js';
 import { API_CONFIG } from './api-config.js';
@@ -113,7 +114,7 @@ extractWordsBtn.addEventListener('click', async () => {
             words = await aiService.extractWords(text, API_CONFIG.features.flashcards.maxWords);
             
             // 更新UI
-            extractWords(text);
+            extractWords(words);
             flashcardsContainer.classList.remove('hidden');
             extractionResults.classList.remove('hidden');
             updateCardDisplay();
@@ -182,7 +183,7 @@ function updateCardDisplay() {
 }
 
 // 提取单词函数
-function extractWords(text) {
+function extractWords(words) {
     // 更新单词计数
     wordCount.textContent = words.length;
     
