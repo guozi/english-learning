@@ -1,7 +1,4 @@
 // 闪卡模块的JavaScript功能实现
-// 导入AI服务
-import aiService from './ai-service.js';
-import { API_CONFIG } from './api-config.js';
 
 // 闪卡功能
 const flashcard = document.getElementById('flashcard');
@@ -16,82 +13,36 @@ const prevCardBtn = document.getElementById('prev-card');
 const nextCardBtn = document.getElementById('next-card');
 const currentCardIndex = document.getElementById('current-card-index');
 const totalCards = document.getElementById('total-cards');
-const loadingIndicator = document.getElementById('loading-indicator'); // 确保HTML中添加了这个元素
 
-// 单词数据
-let words = [];
-
-// 尝试从本地存储加载单词
-function loadWordsFromLocalStorage() {
-    const savedWords = localStorage.getItem('flashcards');
-    if (savedWords) {
-        try {
-            words = JSON.parse(savedWords);
-        } catch (e) {
-            console.error('加载保存的单词失败:', e);
-            // 使用示例数据作为后备
-            words = [
-                {
-                    word: 'vocabulary',
-                    phonetic: '/vəˈkæbjələri/',
-                    definition: 'n. 词汇表；词汇量',
-                    etymology: '来自拉丁语 vocabularium，由 vocab(呼唤) + -ary(表名词)',
-                    example: 'Reading books is a great way to expand your vocabulary.',
-                    exampleTranslation: '阅读书籍是扩大词汇量的好方法。'
-                }
-            ];
-        }
-    } else {
-        // 如果没有保存的数据，使用示例数据
-        words = [
-            {
-                word: 'vocabulary',
-                phonetic: '/vəˈkæbjələri/',
-                definition: 'n. 词汇表；词汇量',
-                etymology: '来自拉丁语 vocabularium，由 vocab(呼唤) + -ary(表名词)',
-                example: 'Reading books is a great way to expand your vocabulary.',
-                exampleTranslation: '阅读书籍是扩大词汇量的好方法。'
-            },
-            {
-                word: 'enhance',
-                phonetic: '/ɪnˈhæns/',
-                definition: 'v. 提高；增强；加强',
-                etymology: '来自古法语 enhancer，en-(使) + hancer(提高)',
-                example: 'The new features will enhance the user experience.',
-                exampleTranslation: '新功能将提升用户体验。'
-            },
-            {
-                word: 'comprehension',
-                phonetic: '/ˌkɒmprɪˈhenʃn/',
-                definition: 'n. 理解；领悟；包含',
-                etymology: '来自拉丁语 comprehensionem，com-(完全) + prehendere(抓住)',
-                example: 'Reading comprehension is an essential skill for students.',
-                exampleTranslation: '阅读理解是学生的一项基本技能。'
-            }
-        ];
+// 示例单词数据
+let words = [
+    {
+        word: 'vocabulary',
+        phonetic: '/vəˈkæbjələri/',
+        definition: 'n. 词汇表；词汇量',
+        etymology: '来自拉丁语 vocabularium，由 vocab(呼唤) + -ary(表名词)',
+        example: 'Reading books is a great way to expand your vocabulary.',
+        exampleTranslation: '阅读书籍是扩大词汇量的好方法。'
+    },
+    {
+        word: 'enhance',
+        phonetic: '/ɪnˈhæns/',
+        definition: 'v. 提高；增强；加强',
+        etymology: '来自古法语 enhancer，en-(使) + hancer(提高)',
+        example: 'The new features will enhance the user experience.',
+        exampleTranslation: '新功能将提升用户体验。'
+    },
+    {
+        word: 'comprehension',
+        phonetic: '/ˌkɒmprɪˈhenʃn/',
+        definition: 'n. 理解；领悟；包含',
+        etymology: '来自拉丁语 comprehensionem，com-(完全) + prehendere(抓住)',
+        example: 'Reading comprehension is an essential skill for students.',
+        exampleTranslation: '阅读理解是学生的一项基本技能。'
     }
-}
-
-// 保存单词到本地存储
-function saveWordsToLocalStorage(wordsToSave) {
-    try {
-        localStorage.setItem('flashcards', JSON.stringify(wordsToSave));
-    } catch (e) {
-        console.error('保存单词失败:', e);
-    }
-}
+];
 
 let currentIndex = 0;
-
-// 页面加载时初始化
-document.addEventListener('DOMContentLoaded', () => {
-    loadWordsFromLocalStorage();
-    if (words.length > 0) {
-        flashcardsContainer.classList.remove('hidden');
-        extractionResults.classList.remove('hidden');
-        updateCardDisplay();
-    }
-});
 
 // 闪卡翻转
 flashcard.addEventListener('click', () => {
@@ -99,34 +50,15 @@ flashcard.addEventListener('click', () => {
 });
 
 // 提取单词按钮点击事件
-extractWordsBtn.addEventListener('click', async () => {
+extractWordsBtn.addEventListener('click', () => {
     const text = inputText.value.trim();
     if (text) {
-        try {
-            // 显示加载指示器
-            if (loadingIndicator) {
-                loadingIndicator.classList.remove('hidden');
-            }
-            extractWordsBtn.disabled = true;
-            
-            // 使用AI服务提取单词
-            words = await aiService.extractWords(text, API_CONFIG.features.flashcards.maxWords);
-            
-            // 更新UI
-            extractWords(text);
-            flashcardsContainer.classList.remove('hidden');
-            extractionResults.classList.remove('hidden');
-            updateCardDisplay();
-        } catch (error) {
-            console.error('提取单词失败:', error);
-            alert(`提取单词失败: ${error.message}`);
-        } finally {
-            // 隐藏加载指示器
-            if (loadingIndicator) {
-                loadingIndicator.classList.add('hidden');
-            }
-            extractWordsBtn.disabled = false;
-        }
+        // 这里应该是实际的单词提取算法
+        // 现在使用示例数据
+        extractWords(text);
+        flashcardsContainer.classList.remove('hidden');
+        extractionResults.classList.remove('hidden');
+        updateCardDisplay();
     }
 });
 
@@ -183,6 +115,9 @@ function updateCardDisplay() {
 
 // 提取单词函数
 function extractWords(text) {
+    // 这里应该是实际的单词提取算法
+    // 现在使用示例数据
+    
     // 更新单词计数
     wordCount.textContent = words.length;
     
@@ -194,9 +129,6 @@ function extractWords(text) {
         wordTag.textContent = word.word;
         wordList.appendChild(wordTag);
     });
-    
-    // 保存到本地存储以便后续使用
-    saveWordsToLocalStorage(words);
 }
 
 // 滑动操作
