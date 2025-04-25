@@ -7,16 +7,64 @@ const exampleSentences = {
     example3: "The book, which was written by a famous author, has won several awards and is now being adapted into a movie that will be released next year." // 复杂句
 };
 
-// 句子成分颜色映射
-const componentColors = {
-    subject: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', // 主语
-    predicate: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', // 谓语
-    object: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', // 宾语
-    attribute: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', // 定语
-    adverbial: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', // 状语
-    complement: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200', // 补语
-    appositive: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200', // 同位语
-    other: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' // 其他
+// 句子成分配置
+const componentConfig = {
+    subject: {
+        class: 'component-subject',
+        name: '主语',
+        engName: 'Subject',
+        description: '句子的执行者，表示"谁"或"什么"执行了动作',
+        examples: ['The cat', 'She', 'John and Mary']
+    },
+    predicate: {
+        class: 'component-predicate',
+        name: '谓语',
+        engName: 'Predicate',
+        description: '表示主语执行的动作或处于的状态',
+        examples: ['runs', 'is reading', 'will have completed']
+    },
+    object: {
+        class: 'component-object',
+        name: '宾语',
+        engName: 'Object',
+        description: '动作的接受者，表示动作作用的对象',
+        examples: ['a book', 'the letter', 'her homework']
+    },
+    attribute: {
+        class: 'component-attribute',
+        name: '定语',
+        engName: 'Attribute',
+        description: '修饰名词或代词，说明其特征、性质或范围',
+        examples: ['beautiful', 'my', 'which was written by him']
+    },
+    adverbial: {
+        class: 'component-adverbial',
+        name: '状语',
+        engName: 'Adverbial',
+        description: '修饰动词、形容词或整个句子，表示时间、地点、方式等',
+        examples: ['quickly', 'in the garden', 'when it rains']
+    },
+    complement: {
+        class: 'component-complement',
+        name: '补语',
+        engName: 'Complement',
+        description: '补充说明主语或宾语的特征、身份或状态',
+        examples: ['happy', 'a teacher', 'president of the company']
+    },
+    appositive: {
+        class: 'component-appositive',
+        name: '同位语',
+        engName: 'Appositive',
+        description: '对前面的名词或代词进行解释或补充说明',
+        examples: ['my friend John', 'Paris, the capital of France']
+    },
+    other: {
+        class: 'component-other',
+        name: '其他',
+        engName: 'Other',
+        description: '包括连词、冠词、感叹词等其他成分',
+        examples: ['and', 'the', 'oh']
+    }
 };
 
 // 初始化页面
@@ -271,52 +319,89 @@ function analyzeClausesAndTenses(sentence) {
  */
 function analyzeComponents(sentence) {
     const componentsElement = document.getElementById('sentence-components');
+    const placeholderElement = document.getElementById('components-placeholder');
+    
+    // 隐藏占位符
+    if (sentence && placeholderElement) {
+        placeholderElement.style.display = 'none';
+    }
     
     // 在实际应用中，这里应该使用NLP库进行更准确的句法分析
     // 这里我们使用一个简化的演示版本
     
     let componentsHTML = '';
     
+    // 创建句子成分标签的函数
+    function createComponentTag(text, type, isNested = false, hasConnection = false) {
+        const config = componentConfig[type];
+        const connectionClass = hasConnection ? 'component-connection' : '';
+        const nestedClass = isNested ? 'ml-2 mr-2 my-1' : '';
+        
+        return `
+            <span class="component-tag ${config.class} ${connectionClass} ${nestedClass}" data-type="${type}">
+                <span class="component-label">${config.name}</span>
+                <div class="component-tooltip" style="display: none;">
+                    <div class="font-bold mb-1">${config.name} (${config.engName})</div>
+                    <div class="text-xs mb-2">${config.description}</div>
+                    <div class="text-xs italic">例如: ${config.examples.join(', ')}</div>
+                </div>
+                ${text}
+            </span>
+        `;
+    }
+    
     // 根据示例句子提供预设的分析
     if (sentence === exampleSentences.example1) {
         // 简单句分析
         componentsHTML = `
-            <span class="${componentColors.subject} px-1 rounded mr-1">The cat</span>
-            <span class="${componentColors.predicate} px-1 rounded mr-1">sat</span>
-            <span class="${componentColors.adverbial} px-1 rounded mr-1">on the mat</span>.
+            ${createComponentTag('The cat', 'subject', false, true)}
+            ${createComponentTag('sat', 'predicate', false, true)}
+            ${createComponentTag('on the mat', 'adverbial')}
+            .
         `;
     } else if (sentence === exampleSentences.example2) {
         // 复合句分析
+        const objectContent = `
+            that 
+            ${createComponentTag('he', 'subject', true, true)}
+            ${createComponentTag('will come', 'predicate', true, true)}
+            ${createComponentTag('tomorrow', 'adverbial', true, true)}
+            ${createComponentTag(`if 
+                ${createComponentTag('it', 'subject', true, true)}
+                ${createComponentTag('doesn\'t rain', 'predicate', true)}
+            `, 'adverbial', true)}
+        `;
+        
         componentsHTML = `
-            <span class="${componentColors.subject} px-1 rounded mr-1">I</span>
-            <span class="${componentColors.predicate} px-1 rounded mr-1">believe</span>
-            <span class="${componentColors.object} px-1 rounded mr-1">that 
-                <span class="${componentColors.subject} px-1 rounded mr-1">he</span>
-                <span class="${componentColors.predicate} px-1 rounded mr-1">will come</span>
-                <span class="${componentColors.adverbial} px-1 rounded mr-1">tomorrow</span>
-                <span class="${componentColors.adverbial} px-1 rounded mr-1">if 
-                    <span class="${componentColors.subject} px-1 rounded mr-1">it</span>
-                    <span class="${componentColors.predicate} px-1 rounded mr-1">doesn't rain</span>
-                </span>
-            </span>.
+            ${createComponentTag('I', 'subject', false, true)}
+            ${createComponentTag('believe', 'predicate', false, true)}
+            ${createComponentTag(objectContent, 'object')}
+            .
         `;
     } else if (sentence === exampleSentences.example3) {
         // 复杂句分析
+        const attributeContent1 = `
+            which 
+            ${createComponentTag('was written', 'predicate', true, true)}
+            ${createComponentTag('by a famous author', 'adverbial', true)}
+        `;
+        
+        const attributeContent2 = `
+            that 
+            ${createComponentTag('will be released', 'predicate', true, true)}
+            ${createComponentTag('next year', 'adverbial', true)}
+        `;
+        
         componentsHTML = `
-            <span class="${componentColors.subject} px-1 rounded mr-1">The book</span>,
-            <span class="${componentColors.attribute} px-1 rounded mr-1">which 
-                <span class="${componentColors.predicate} px-1 rounded mr-1">was written</span>
-                <span class="${componentColors.adverbial} px-1 rounded mr-1">by a famous author</span>
-            </span>,
-            <span class="${componentColors.predicate} px-1 rounded mr-1">has won</span>
-            <span class="${componentColors.object} px-1 rounded mr-1">several awards</span>
+            ${createComponentTag('The book', 'subject', false, true)},
+            ${createComponentTag(attributeContent1, 'attribute', false, true)},
+            ${createComponentTag('has won', 'predicate', false, true)}
+            ${createComponentTag('several awards', 'object', false, true)}
             and
-            <span class="${componentColors.predicate} px-1 rounded mr-1">is now being adapted</span>
-            <span class="${componentColors.adverbial} px-1 rounded mr-1">into a movie</span>
-            <span class="${componentColors.attribute} px-1 rounded mr-1">that 
-                <span class="${componentColors.predicate} px-1 rounded mr-1">will be released</span>
-                <span class="${componentColors.adverbial} px-1 rounded mr-1">next year</span>
-            </span>.
+            ${createComponentTag('is now being adapted', 'predicate', false, true)}
+            ${createComponentTag('into a movie', 'adverbial', false, true)}
+            ${createComponentTag(attributeContent2, 'attribute')}
+            .
         `;
     } else {
         // 对于非示例句子，提供一个简化的分析
@@ -330,35 +415,228 @@ function analyzeComponents(sentence) {
             const punctuation = word.match(/[,.!?;:]$/)?.[0] || '';
             
             // 非常简化的句法分析逻辑
-            let componentClass = '';
+            let componentType = '';
+            let hasConnection = false;
+            
+            // 为主语和谓语添加连接线
+            if (index < words.length - 1) {
+                hasConnection = true;
+            }
             
             if (index === 0 || (index === 1 && ['a', 'an', 'the'].includes(words[0].toLowerCase()))) {
                 // 假设句子开头是主语
-                componentClass = componentColors.subject;
+                componentType = 'subject';
             } else if (['is', 'am', 'are', 'was', 'were', 'has', 'have', 'had', 'will', 'would', 'can', 'could', 'may', 'might', 'shall', 'should', 'must'].includes(cleanWord.toLowerCase()) || 
                       (index > 0 && ['is', 'am', 'are', 'was', 'were', 'has', 'have', 'had', 'will', 'would', 'can', 'could', 'may', 'might', 'shall', 'should', 'must'].includes(words[index-1].toLowerCase()))) {
                 // 假设这些是谓语动词或其一部分
-                componentClass = componentColors.predicate;
+                componentType = 'predicate';
                 inSubject = false;
             } else if (['in', 'on', 'at', 'by', 'with', 'from', 'to', 'for', 'before', 'after', 'during', 'until'].includes(cleanWord.toLowerCase())) {
                 // 假设这些介词引导状语
-                componentClass = componentColors.adverbial;
+                componentType = 'adverbial';
             } else if (['a', 'an', 'the', 'this', 'that', 'these', 'those', 'my', 'your', 'his', 'her', 'its', 'our', 'their'].includes(cleanWord.toLowerCase())) {
                 // 假设这些是定语
-                componentClass = componentColors.attribute;
+                componentType = 'attribute';
             } else if (!inSubject && index > 2) {
                 // 假设主语和谓语之后的名词短语是宾语
-                componentClass = componentColors.object;
+                componentType = 'object';
             } else {
                 // 其他情况
-                componentClass = componentColors.other;
+                componentType = 'other';
             }
             
-            componentsHTML += `<span class="${componentClass} px-1 rounded mr-1">${cleanWord}</span>${punctuation} `;
+            componentsHTML += createComponentTag(cleanWord, componentType, false, hasConnection) + punctuation + ' ';
         });
     }
     
     componentsElement.innerHTML = componentsHTML;
+    
+    // 添加点击和悬停事件处理
+    document.querySelectorAll('.component-tag').forEach(tag => {
+        // 点击事件处理
+        tag.addEventListener('click', function() {
+            // 移除所有活跃状态
+            document.querySelectorAll('.component-tag').forEach(t => t.classList.remove('active'));
+            // 添加活跃状态到当前标签
+            this.classList.add('active');
+            
+            // 可以在这里添加更多交互逻辑，例如显示详细信息面板等
+        });
+        
+        // 悬停事件处理 - 显示提示框
+        tag.addEventListener('mouseenter', function() {
+            // 先隐藏所有提示框
+            document.querySelectorAll('.component-tooltip').forEach(tooltip => {
+                tooltip.style.display = 'none';
+                tooltip.classList.remove('visible');
+            });
+            
+            // 显示当前标签的提示框
+            const tooltip = this.querySelector('.component-tooltip');
+            if (tooltip) {
+                tooltip.style.display = 'block';
+                tooltip.classList.add('visible');
+            }
+        });
+        
+        // 鼠标离开事件处理 - 隐藏提示框
+        tag.addEventListener('mouseleave', function() {
+            const tooltip = this.querySelector('.component-tooltip');
+            if (tooltip) {
+                tooltip.style.display = 'none';
+                tooltip.classList.remove('visible');
+            }
+        });
+    });
+    
+    // 优化组件标签布局，避免重叠
+    adjustComponentTagsLayout();
+}
+
+/**
+ * 优化组件标签布局，避免重叠
+ */
+function adjustComponentTagsLayout() {
+    const componentTags = document.querySelectorAll('.component-tag');
+    const componentsContainer = document.getElementById('sentence-components');
+    
+    // 如果标签数量少于2，不需要调整
+    if (componentTags.length < 2) return;
+    
+    // 重置所有标签的样式，以便重新计算
+    componentTags.forEach(tag => {
+        tag.style.marginRight = '';
+        tag.style.marginLeft = '';
+        tag.style.marginTop = '';
+        tag.style.marginBottom = '';
+    });
+    
+    // 获取所有标签的位置信息
+    const tagPositions = [];
+    componentTags.forEach((tag, index) => {
+        const rect = tag.getBoundingClientRect();
+        tagPositions.push({
+            element: tag,
+            index: index,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height
+        });
+    });
+    
+    // 检测并调整水平方向的重叠
+    for (let i = 0; i < tagPositions.length - 1; i++) {
+        const currentTag = tagPositions[i];
+        const nextTag = tagPositions[i + 1];
+        
+        // 检查是否水平重叠（当前标签的右边缘超过了下一个标签的左边缘）
+        if (currentTag.right > nextTag.left - 10) { // 10px的安全间距
+            // 计算需要的额外间距
+            const overlap = currentTag.right - nextTag.left + 10;
+            
+            // 为当前标签添加右边距
+            currentTag.element.style.marginRight = `${overlap}px`;
+            
+            // 为嵌套标签添加适当的缩进
+            if (currentTag.element.classList.contains('ml-2')) {
+                currentTag.element.style.marginLeft = '1rem';
+            }
+        }
+    }
+    
+    // 重新获取位置信息，因为我们已经调整了水平间距
+    const updatedTagPositions = [];
+    componentTags.forEach((tag, index) => {
+        const rect = tag.getBoundingClientRect();
+        updatedTagPositions.push({
+            element: tag,
+            index: index,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height
+        });
+    });
+    
+    // 检测并调整垂直方向的重叠
+    for (let i = 0; i < updatedTagPositions.length; i++) {
+        for (let j = 0; j < updatedTagPositions.length; j++) {
+            if (i !== j) { // 不与自己比较
+                const tagA = updatedTagPositions[i];
+                const tagB = updatedTagPositions[j];
+                
+                // 检查是否垂直重叠
+                const verticalOverlap = !(tagA.bottom < tagB.top + 5 || tagA.top > tagB.bottom - 5);
+                // 检查是否水平重叠
+                const horizontalOverlap = !(tagA.right < tagB.left || tagA.left > tagB.right);
+                
+                // 如果两个标签在水平和垂直方向都有重叠
+                if (verticalOverlap && horizontalOverlap) {
+                    // 如果tagA在tagB的上方附近，增加tagA的底部间距
+                    if (tagA.top < tagB.top) {
+                        const currentMarginBottom = parseInt(getComputedStyle(tagA.element).marginBottom) || 0;
+                        tagA.element.style.marginBottom = `${currentMarginBottom + 10}px`;
+                    }
+                    // 如果tagA在tagB的下方附近，增加tagA的顶部间距
+                    else if (tagA.top > tagB.top) {
+                        const currentMarginTop = parseInt(getComputedStyle(tagA.element).marginTop) || 0;
+                        tagA.element.style.marginTop = `${currentMarginTop + 10}px`;
+                    }
+                }
+            }
+        }
+    }
+    
+    // 确保提示框不会超出视口
+    componentTags.forEach(tag => {
+        const tooltip = tag.querySelector('.component-tooltip');
+        if (tooltip) {
+            const tagRect = tag.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            
+            // 如果标签靠近视口右边缘，将提示框向左偏移
+            if (tagRect.right > viewportWidth - 150) {
+                tooltip.style.left = 'auto';
+                tooltip.style.right = '0';
+                tooltip.style.transform = 'none';
+            }
+            // 如果标签靠近视口左边缘，将提示框向右偏移
+            else if (tagRect.left < 150) {
+                tooltip.style.left = '0';
+                tooltip.style.right = 'auto';
+                tooltip.style.transform = 'none';
+            }
+            
+            // 确保提示框不会超出视口顶部
+            const tooltipHeight = tooltip.offsetHeight;
+            if (tagRect.top < tooltipHeight + 10) {
+                tooltip.style.bottom = 'auto';
+                tooltip.style.top = '100%';
+                tooltip.style.marginTop = '5px';
+            }
+        }
+    });
+    
+    // 增加容器的最小高度，确保有足够的空间显示所有标签
+    const containerRect = componentsContainer.getBoundingClientRect();
+    let maxBottom = 0;
+    
+    componentTags.forEach(tag => {
+        const tagRect = tag.getBoundingClientRect();
+        maxBottom = Math.max(maxBottom, tagRect.bottom);
+    });
+    
+    // 如果有标签超出了容器底部，增加容器高度
+    if (maxBottom > containerRect.bottom) {
+        const additionalHeight = maxBottom - containerRect.bottom + 20; // 额外添加20px的安全间距
+        const currentMinHeight = parseInt(getComputedStyle(componentsContainer).minHeight) || 100;
+        componentsContainer.style.minHeight = `${currentMinHeight + additionalHeight}px`;
+    }
 }
 
 /**
