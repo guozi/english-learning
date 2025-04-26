@@ -392,7 +392,7 @@ function analyzeComponents(sentence) {
         return `
             <span class="component-tag ${tagClass} ${nestedClass}" data-type="${type}">
                 <span class="component-label">${config.name}</span>
-                <div class="component-tooltip ${tooltipBgClass} shadow-lg rounded-lg" style="display: none;">
+                <div class="component-tooltip ${tooltipBgClass} shadow-lg rounded-lg ${config.class}-tooltip" style="display: none;">
                     <div class="font-bold mb-1">${config.name} (${config.engName})</div>
                     <div class="text-xs mb-2">${config.description}</div>
                     <div class="text-xs italic">例如: ${config.examples.join(', ')}</div>
