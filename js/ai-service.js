@@ -134,7 +134,7 @@ class AIService {
      */
     async analyzeSentence(sentence) {
         const prompt = `
-        请你作为一位专业的英语语法分析专家，对下面这个英文句子进行全面细致的语法分析。请按照以下六个部分逐一分析，并用中文输出结果：
+        请你作为一位专业的英语语法分析专家，对下面这个英文句子进行全面细致的语法分析。请按照以下六个部分逐一分析，并用中文准确无误的输出结果：
         1. 句子结构（简单句、复合句、复杂句等）
         2. 从句分析（如果有）
         3. 时态分析
@@ -146,7 +146,7 @@ class AIService {
         {
           "structure": {
             "type": "句子类型",
-            "explanation": "结构解释"
+            "explanation": "详细的句子结构解释"
           },
           "clauses": [
             {
@@ -155,10 +155,10 @@ class AIService {
               "function": "在句中的功能"
             }
           ],
-          "tense": {
+          "tense": [{
             "name": "时态名称",
             "explanation": "时态解释"
-          },
+          }],
           "components": [
             {
               "text": "成分文本",
