@@ -352,10 +352,47 @@ function analyzeComponents(sentence) {
         const config = componentConfig[type];
         const nestedClass = isNested ? 'ml-2 mr-2 my-1' : '';
         
+        // 根据组件类型设置对应的背景颜色类
+        let tooltipBgClass = '';
+        
+        // 为每种组件类型设置对应的背景颜色
+        switch(type) {
+            case 'subject':
+                tooltipBgClass = 'bg-blue-100 dark:bg-blue-900';
+                break;
+            case 'predicate':
+                tooltipBgClass = 'bg-red-100 dark:bg-red-900';
+                break;
+            case 'object':
+                tooltipBgClass = 'bg-green-100 dark:bg-green-900';
+                break;
+            case 'attribute':
+                tooltipBgClass = 'bg-yellow-100 dark:bg-yellow-900';
+                break;
+            case 'adverbial':
+                tooltipBgClass = 'bg-purple-100 dark:bg-purple-900';
+                break;
+            case 'complement':
+                tooltipBgClass = 'bg-pink-100 dark:bg-pink-900';
+                break;
+            case 'appositive':
+                tooltipBgClass = 'bg-indigo-100 dark:bg-indigo-900';
+                break;
+            case 'other':
+                tooltipBgClass = 'bg-gray-100 dark:bg-gray-900';
+                break;
+            default:
+                tooltipBgClass = 'bg-white dark:bg-gray-800';
+        }
+        
+        // 为组件标签添加一个额外的类，用于嵌套组件的样式区分
+        // 但保持悬浮窗的颜色与组件类型一致
+        const tagClass = isNested ? `${config.class} nested-component` : config.class;
+        
         return `
-            <span class="component-tag ${config.class} ${nestedClass}" data-type="${type}">
+            <span class="component-tag ${tagClass} ${nestedClass}" data-type="${type}">
                 <span class="component-label">${config.name}</span>
-                <div class="component-tooltip bg-white dark:bg-gray-800 shadow-lg rounded-lg" style="display: none;">
+                <div class="component-tooltip ${tooltipBgClass} shadow-lg rounded-lg" style="display: none;">
                     <div class="font-bold mb-1">${config.name} (${config.engName})</div>
                     <div class="text-xs mb-2">${config.description}</div>
                     <div class="text-xs italic">例如: ${config.examples.join(', ')}</div>
@@ -484,14 +521,9 @@ function analyzeComponents(sentence) {
             const tooltip = this.querySelector('.component-tooltip');
             if (tooltip) {
                 // 设置过渡效果 - 优化动画效果
-                tooltip.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
                 tooltip.style.opacity = '0';
                 tooltip.style.transform = 'translateY(10px) translateX(-50%)';
                 tooltip.style.display = 'block';
-                
-                // 根据当前主题设置背景颜色
-                const isDarkMode = document.documentElement.classList.contains('dark');
-                tooltip.style.backgroundColor = isDarkMode ? '#374151' : '#ffffff';
                 
                 // 使用延迟显示提示框，提供平滑过渡
                 setTimeout(() => {

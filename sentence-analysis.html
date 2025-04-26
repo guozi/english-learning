@@ -189,8 +189,6 @@
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #f8f9fa;
-            color: #333;
             border-radius: 0.5rem;
             padding: 0.75rem;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -198,9 +196,65 @@
             width: max-content;
             max-width: 250px;
             z-index: 10;
-            opacity: 0;
-            visibility: hidden;
+            margin-bottom: 8px;
             transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        
+        /* 为不同背景色的悬浮窗设置对应的文字颜色 */
+        .component-subject .component-tooltip {
+            color: rgb(30, 64, 175);
+        }
+        .dark .component-subject .component-tooltip {
+            color: rgb(219, 234, 254);
+        }
+        
+        .component-predicate .component-tooltip {
+            color: rgb(153, 27, 27);
+        }
+        .dark .component-predicate .component-tooltip {
+            color: rgb(254, 226, 226);
+        }
+        
+        .component-object .component-tooltip {
+            color: rgb(6, 95, 70);
+        }
+        .dark .component-object .component-tooltip {
+            color: rgb(209, 250, 229);
+        }
+        
+        .component-attribute .component-tooltip {
+            color: rgb(146, 64, 14);
+        }
+        .dark .component-attribute .component-tooltip {
+            color: rgb(254, 243, 199);
+        }
+        
+        .component-adverbial .component-tooltip {
+            color: rgb(91, 33, 182);
+        }
+        .dark .component-adverbial .component-tooltip {
+            color: rgb(237, 233, 254);
+        }
+        
+        .component-complement .component-tooltip {
+            color: rgb(157, 23, 77);
+        }
+        .dark .component-complement .component-tooltip {
+            color: rgb(252, 231, 243);
+        }
+        
+        .component-appositive .component-tooltip {
+            color: rgb(55, 48, 163);
+        }
+        .dark .component-appositive .component-tooltip {
+            color: rgb(224, 231, 255);
+        }
+        
+        .component-other .component-tooltip {
+            color: rgb(75, 85, 99);
+        }
+        .dark .component-other .component-tooltip {
+            color: rgb(229, 231, 235);
         }
         
         .dark .component-tooltip {
