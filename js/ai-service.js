@@ -78,11 +78,30 @@ class AIService {
      * 提取文本中的单词并生成闪卡
      * @param {string} text - 输入文本
      * @param {number} maxWords - 最大单词数
+     * @param {string} level - 单词难度级别
      * @returns {Promise<Array>} - 单词数据数组
      */
-    async extractWords(text, maxWords = API_CONFIG.features.flashcards.maxWords) {
+    async extractWords(text, maxWords = API_CONFIG.features.flashcards.maxWords, level = 'all') {
+        // 根据级别设置提示词
+        let levelPrompt = '';
+        switch(level) {
+            case 'cet4':
+                levelPrompt = '请提取CET-4以上难度的单词，即大学英语四级以上水平的词汇';
+                break;
+            case 'cet6':
+                levelPrompt = '请提取CET-6以上难度的单词，即大学英语六级以上水平的词汇';
+                break;
+            case 'advanced':
+                levelPrompt = '请提取高级词汇，即专业英语或学术英语中常见的高难度词汇';
+                break;
+            case 'all':
+            default:
+                levelPrompt = '请提取各种难度级别的值得学习的单词';
+                break;
+        }
+        
         const prompt = `
-        请从以下英语文本中提取${maxWords}个值得学习的单词或短语，并为每个单词提供以下信息：
+        请从以下英语文本中提取${maxWords}个单词或短语，${levelPrompt}，并为每个单词提供以下信息：
         1. 单词本身
         2. 音标
         3. 中文定义
@@ -90,7 +109,7 @@ class AIService {
         5. 英语例句
         6. 例句中文翻译
 
-        请以JSON格式返回，格式为：
+        请严格按照以下JSON格式返回，且包含以下字段，注意：格式为纯文本且无任何标记符号：
         [
           {
             "word": "单词",
@@ -99,8 +118,7 @@ class AIService {
             "etymology": "词源",
             "example": "例句",
             "exampleTranslation": "例句翻译"
-          },
-          ...
+          }
         ]
 
         文本：${text}

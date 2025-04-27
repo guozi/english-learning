@@ -9,6 +9,7 @@ const flashcard = document.getElementById('flashcard');
 const extractWordsBtn = document.getElementById('extract-words');
 const clearTextBtn = document.getElementById('clear-text');
 const inputText = document.getElementById('input-text');
+const difficultyLevel = document.getElementById('difficulty-level'); // 单词级别选择
 const flashcardsContainer = document.getElementById('flashcards-container');
 const extractionResults = document.getElementById('extraction-results');
 const wordCount = document.getElementById('word-count');
@@ -110,8 +111,11 @@ extractWordsBtn.addEventListener('click', async () => {
             }
             extractWordsBtn.disabled = true;
             
-            // 使用AI服务提取单词
-            words = await aiService.extractWords(text, API_CONFIG.features.flashcards.maxWords);
+            // 获取用户选择的单词级别
+            const level = difficultyLevel.value;
+            
+            // 使用AI服务提取单词，传递文本、最大单词数和级别
+            words = await aiService.extractWords(text, API_CONFIG.features.flashcards.maxWords, level);
             
             // 更新UI
             extractWords(words);

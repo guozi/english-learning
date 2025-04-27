@@ -31,7 +31,7 @@ const API_CONFIG = {
     features: {
         flashcards: {
             enabled: true,
-            maxWords: 20, // 每次提取的最大单词数
+            maxWords: 10, // 每次提取的最大单词数
         },
         sentenceAnalysis: {
             enabled: true,
