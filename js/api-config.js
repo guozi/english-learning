@@ -12,10 +12,12 @@ const API_CONFIG = {
     
     // 备选API配置 (例如: Azure OpenAI, Anthropic Claude等)
     alternative: {
-        provider: 'none', // 可选值: 'none', 'azure', 'anthropic', 'other'
-        apiKey: '',
-        model: '',
-        baseUrl: '',
+        provider: 'deepseek', // 可选值: 'none', 'azure', 'anthropic', 'other'
+        apiKey: 'sk-ed6b5eca33424625828d2a40b56aeb84',
+        model: 'deepseek-chat',
+        temperature: 0.6, // 创造性程度 (0-1)
+        maxTokens: 1000, // 最大令牌数
+        baseUrl: 'https://api.deepseek.com/v1',
     },
     
     // API使用限制设置

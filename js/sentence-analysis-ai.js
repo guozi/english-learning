@@ -24,6 +24,52 @@ const componentColors = {
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', () => {
+    // 添加嵌套组件的样式
+    const style = document.createElement('style');
+    style.textContent = `
+        /* 定语从句样式 */
+        .component-clause {
+            border: 1px dashed #666;
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+        
+        /* 嵌套组件样式 */
+        .component-tag .component-tag {
+            margin: 2px;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        
+        /* 提示框样式优化 */
+        .component-tooltip {
+            max-width: 300px;
+            z-index: 100;
+        }
+        
+        /* 嵌套组件的标签样式 */
+        .component-tag .component-tag .component-label {
+            font-size: 0.7em;
+            padding: 1px 3px;
+        }
+        
+        /* 增强嵌套组件的视觉区分 */
+        .component-tag {
+            position: relative;
+            border-radius: 3px;
+        }
+        
+        /* 定语从句内部组件样式 */
+        .component-clause .component-tag {
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        
+        .component-clause .component-tag:hover {
+            opacity: 1;
+        }
+    `;
+    document.head.appendChild(style);
+    
     // 获取DOM元素
     const sentenceInput = document.getElementById('sentence-input');
     const analyzeBtn = document.getElementById('analyze-btn');
@@ -159,7 +205,7 @@ function displayStructureAnalysis(structureData, sentence) {
  * @param {Object} tenseData - 时态分析数据
  */
 function displayClausesAndTenses(clausesData, tenseData) {
-    const clausesElement = document.getElementById('clauses-analysis');
+    const clausesElement = document.getElementById('clause-types');
     const tenseElement = document.getElementById('tense-analysis');
     
     // 生成从句分析HTML
@@ -187,16 +233,30 @@ function displayClausesAndTenses(clausesData, tenseData) {
     // 设置时态分析HTML
     let tenseHTML = '';
     
-    if (tenseData) {
-        tenseHTML = `
-            <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
-                <div class="font-semibold">${tenseData.name}</div>
-                <div class="mt-1">${tenseData.explanation}</div>
-            </div>
-        `;
+    if (tenseData && tenseData.length > 0) {
+        tenseHTML += '<ul class="space-y-2">';
+        tenseData.forEach(tense => {
+            tenseHTML += `
+                <li class="p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                    <div class="font-semibold">${tense.name}</div>
+                    <div class="mt-1">${tense.explanation}</div>
+                </li>
+            `;
+        });
     } else {
         tenseHTML = '<p>无法确定时态。</p>';
     }
+
+    // if (tenseData) {
+    //     tenseHTML = `
+    //         <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+    //             <div class="font-semibold">${tenseData.name}</div>
+    //             <div class="mt-1">${tenseData.explanation}</div>
+    //         </div>
+    //     `;
+    // } else {
+    //     tenseHTML = '<p>无法确定时态。</p>';
+    // }
     
     // 设置时态分析HTML
     tenseElement.innerHTML = tenseHTML;
@@ -208,7 +268,8 @@ function displayClausesAndTenses(clausesData, tenseData) {
  * @param {string} sentence - 原始句子
  */
 function displayComponents(componentsData, sentence) {
-    const componentsElement = document.getElementById('components-analysis');
+    const componentsElement = document.getElementById('sentence-components');
+    const componentsPlaceholder = document.getElementById('components-placeholder');
     
     if (!componentsData || componentsData.length === 0) {
         // 如果没有成分数据，显示原始句子
@@ -216,37 +277,234 @@ function displayComponents(componentsData, sentence) {
         return;
     }
     
-    // 使用AI返回的成分数据构建带标记的句子
-    let taggedSentence = sentence;
+    // 隐藏占位符
+    if (componentsPlaceholder) {
+        componentsPlaceholder.style.display = 'none';
+    }
     
-    // 从后向前替换，避免位置偏移问题
-    componentsData.sort((a, b) => {
-        // 如果text是句子的一部分，计算它在句子中的位置
-        const posA = sentence.indexOf(a.text);
-        const posB = sentence.indexOf(b.text);
-        return posB - posA; // 从后向前排序
-    });
+    // 预处理组件数据，识别嵌套关系
+    const processedData = preprocessComponents(componentsData, sentence);
     
-    componentsData.forEach(component => {
-        if (sentence.includes(component.text)) {
-            const componentType = component.type.toLowerCase();
-            // 确定使用哪种颜色类
-            const colorClass = componentColors[componentType] || componentColors.other;
-            
-            // 创建带标记的HTML
-            const taggedComponent = `<span class="${colorClass} px-1 rounded cursor-pointer" 
-                                        title="${component.explanation}"
-                                        onclick="showComponentInfo(this, '${componentType}')">
-                                     ${component.text}
-                                  </span>`;
-            
-            // 替换原始文本
-            taggedSentence = taggedSentence.replace(component.text, taggedComponent);
-        }
-    });
+    // 使用处理后的成分数据构建带标记的句子
+    let taggedSentence = buildTaggedSentence(processedData, sentence);
     
     // 设置成分分析HTML
     componentsElement.innerHTML = taggedSentence;
+    
+    // 添加交互事件
+    setupComponentInteractions();
+}
+
+/**
+ * 预处理句子成分数据，识别嵌套关系
+ * @param {Array} componentsData - 原始成分数据
+ * @param {string} sentence - 原始句子
+ * @returns {Array} - 处理后的成分数据
+ */
+/**
+ * 将中文句子成分类型转换为英文类型
+ * @param {string} chineseType - 中文句子成分类型
+ * @returns {string} - 对应的英文类型
+ */
+function mapComponentTypeToEnglish(chineseType) {
+    // 创建中文到英文的映射
+    const typeMapping = {
+        '主语': 'subject',
+        '谓语': 'predicate',
+        '宾语': 'object',
+        '定语': 'attribute',
+        '状语': 'adverbial',
+        '补语': 'complement',
+        '同位语': 'appositive',
+        '其他': 'other'
+    };
+    
+    // 如果是直接匹配的类型，返回映射值
+    if (typeMapping[chineseType]) {
+        return typeMapping[chineseType];
+    }
+    
+    // 如果不是直接匹配，使用包含方式判断
+    // 例如"第二谓语"应该返回"predicate"
+    for (const [key, value] of Object.entries(typeMapping)) {
+        if (chineseType.includes(key)) {
+            return value;
+        }
+    }
+    
+    // 默认返回other
+    return 'other';
+}
+
+function preprocessComponents(componentsData, sentence) {
+    // 复制组件数据，避免修改原始数据
+    const components = JSON.parse(JSON.stringify(componentsData));
+    
+    // 第一步：预处理组件，记录所有组件的原始位置信息
+    let processedComponents = [];
+    
+    // 先按文本长度从长到短排序，优先处理较长的组件（通常是从句）
+    components.sort((a, b) => b.text.length - a.text.length);
+    
+    // 记录所有组件的位置信息，但暂不替换文本
+    components.forEach(component => {
+        // 将中文类型转换为英文类型，而不是简单地转为小写
+        const componentType = mapComponentTypeToEnglish(component.type);
+        const position = sentence.indexOf(component.text);
+        
+        if (position !== -1) {
+            // 记录组件信息
+            processedComponents.push({
+                text: component.text,
+                type: componentType,
+                explanation: component.explanation,
+                position: position,
+                length: component.text.length,
+                children: [], // 存储嵌套的子组件
+                parent: null,  // 父组件引用
+                // 标记是否为定语从句
+                isClause: componentType === 'attribute' && 
+                    (component.text.includes('which') || component.text.includes('that') || 
+                     component.text.includes('who') || component.text.includes('whom') || 
+                     component.text.includes('whose'))
+            });
+        }
+    });
+    
+    // 按原始位置排序
+    processedComponents.sort((a, b) => a.position - b.position);
+    
+    // 第二步：识别嵌套关系
+    // 先处理定语从句，确保从句被正确识别
+    const clauseComponents = processedComponents.filter(comp => comp.isClause);
+    const nonClauseComponents = processedComponents.filter(comp => !comp.isClause);
+    
+    // 处理定语从句的嵌套关系
+    for (const clause of clauseComponents) {
+        // 查找从句中的其他成分
+        for (const comp of nonClauseComponents) {
+            // 检查是否包含在定语从句中
+            if (clause.position <= comp.position && 
+                (clause.position + clause.length) >= (comp.position + comp.length) &&
+                clause !== comp) {
+                // 将其标记为从句的子组件
+                comp.parent = clause;
+                clause.children.push(comp);
+            }
+        }
+    }
+    
+    // 第三步：处理其他可能的嵌套关系（非从句的嵌套）
+    for (let i = 0; i < processedComponents.length; i++) {
+        const current = processedComponents[i];
+        
+        // 跳过已经处理过的从句
+        if (current.isClause) continue;
+        
+        for (let j = 0; j < processedComponents.length; j++) {
+            if (i !== j) {
+                const other = processedComponents[j];
+                // 避免重复处理已有父组件的元素
+                if (!other.parent && !other.isClause) {
+                    // 检查是否包含在当前组件中
+                    if (current.position <= other.position && 
+                        (current.position + current.length) >= (other.position + other.length)) {
+                        // 将其标记为当前组件的子组件
+                        other.parent = current;
+                        current.children.push(other);
+                    }
+                }
+            }
+        }
+    }
+    
+    // 过滤掉已经被标记为子组件的元素，避免重复显示
+    return processedComponents.filter(comp => comp.parent === null);
+}
+
+/**
+ * 构建带标记的句子HTML
+ * @param {Array} processedComponents - 处理后的成分数据
+ * @param {string} sentence - 原始句子
+ * @returns {string} - 带标记的句子HTML
+ */
+function buildTaggedSentence(processedComponents, sentence) {
+    let taggedSentence = '';
+    let lastIndex = 0;
+    
+    // 递归构建组件HTML
+    function buildComponentHTML(component) {
+        // 获取组件类名
+        const componentClass = `component-tag component-${component.type}${component.isClause ? ' component-clause' : ''}`;
+        
+        // 如果有子组件，递归处理
+        if (component.children && component.children.length > 0) {
+            // 按位置排序子组件
+            component.children.sort((a, b) => a.position - b.position);
+            
+            let innerContent = '';
+            let innerLastIndex = 0;
+            const componentText = component.text;
+            
+            // 处理每个子组件
+            component.children.forEach(child => {
+                // 计算子组件在父组件中的相对位置
+                const relativePosition = child.position - component.position;
+                
+                // 添加子组件前的文本
+                if (relativePosition > innerLastIndex) {
+                    innerContent += componentText.substring(innerLastIndex, relativePosition);
+                }
+                
+                // 递归构建子组件HTML
+                innerContent += buildComponentHTML(child);
+                
+                // 更新内部索引
+                innerLastIndex = relativePosition + child.length;
+            });
+            
+            // 添加最后一个子组件后的文本
+            if (innerLastIndex < componentText.length) {
+                innerContent += componentText.substring(innerLastIndex);
+            }
+            
+            // 创建带标记和提示框的HTML
+            return `<span class="${componentClass}" data-component-type="${component.type}">
+                <span class="component-label">${getComponentName(component.type)}</span>
+                ${innerContent}
+                <div class="component-tooltip" style="display: none;">${component.explanation || getComponentDescription(component.type)}</div>
+            </span>`;
+        } else {
+            // 没有子组件，直接创建HTML
+            return `<span class="${componentClass}" data-component-type="${component.type}">
+                <span class="component-label">${getComponentName(component.type)}</span>
+                ${component.text}
+                <div class="component-tooltip" style="display: none;">${component.explanation || getComponentDescription(component.type)}</div>
+            </span>`;
+        }
+    }
+    
+    // 构建最终的句子HTML
+    processedComponents.forEach(comp => {
+        // 添加组件前的文本
+        if (comp.position > lastIndex) {
+            const textBefore = sentence.substring(lastIndex, comp.position);
+            taggedSentence += textBefore;
+        }
+        
+        // 构建组件HTML
+        taggedSentence += buildComponentHTML(comp);
+        
+        // 更新索引
+        lastIndex = comp.position + comp.length;
+    });
+    
+    // 添加句子末尾剩余的文本
+    if (lastIndex < sentence.length) {
+        taggedSentence += sentence.substring(lastIndex);
+    }
+    
+    return taggedSentence;
 }
 
 /**
@@ -255,8 +513,8 @@ function displayComponents(componentsData, sentence) {
  * @param {Array} grammarPointsData - 语法点分析数据
  */
 function displayPhrasesAndGrammar(phrasesData, grammarPointsData) {
-    const phrasesElement = document.getElementById('phrases-analysis');
-    const grammarElement = document.getElementById('grammar-points');
+    const phrasesElement = document.getElementById('key-phrases');
+    const grammarElement = document.getElementById('grammar-extensions');
     
     // 生成短语分析HTML
     let phrasesHTML = '';
@@ -339,6 +597,137 @@ function getComponentName(componentType) {
     };
     
     return componentNames[componentType] || '未知成分';
+}
+
+/**
+ * 获取成分描述
+ * @param {string} componentType - 成分类型
+ * @returns {string} - 成分描述
+ */
+function getComponentDescription(componentType) {
+    const componentDescriptions = {
+        subject: '主语是句子的主体，表示动作的执行者或状态的承担者。',
+        predicate: '谓语表示主语的动作、状态或特征，通常是动词或动词短语。',
+        object: '宾语是动作的接受者，通常跟在及物动词后面。',
+        attribute: '定语用来修饰、限定名词或代词，说明其特征、性质、状态等。',
+        adverbial: '状语用来修饰动词、形容词或整个句子，表示时间、地点、方式、程度等。',
+        complement: '补语用来补充说明主语或宾语的特征、状态等。',
+        appositive: '同位语对前面的名词或代词进行解释、说明或补充。',
+        other: '其他成分包括连词、冠词、感叹词等。'
+    };
+    
+    return componentDescriptions[componentType] || '句子的组成部分';
+}
+
+/**
+ * 设置句子成分的交互功能
+ */
+function setupComponentInteractions() {
+    // 获取所有句子成分标签
+    const componentTags = document.querySelectorAll('.component-tag');
+    let activeTooltip = null;
+    
+    // 为每个标签添加事件监听器
+    componentTags.forEach(tag => {
+        // 鼠标悬停显示提示框
+        tag.addEventListener('mouseenter', function(event) {
+            // 阻止事件冒泡，防止触发父组件的事件
+            event.stopPropagation();
+            
+            // 隐藏之前可能显示的提示框
+            if (activeTooltip && activeTooltip !== this) {
+                const prevTooltip = activeTooltip.querySelector(':scope > .component-tooltip');
+                if (prevTooltip) {
+                    prevTooltip.classList.remove('visible');
+                }
+                activeTooltip.classList.remove('active');
+            }
+            
+            // 显示当前提示框
+            const tooltip = this.querySelector(':scope > .component-tooltip');
+            if (tooltip) {
+                // 先设置display为block，然后添加visible类
+                tooltip.style.display = 'block';
+                // 使用setTimeout确保过渡效果正常工作
+                setTimeout(() => {
+                    tooltip.classList.add('visible');
+                    this.classList.add('active');
+                }, 10);
+                activeTooltip = this;
+            }
+        });
+        
+        // 鼠标离开隐藏提示框，除非已被点击固定
+        tag.addEventListener('mouseleave', function(event) {
+            // 阻止事件冒泡
+            event.stopPropagation();
+            
+            // 如果没有被点击固定，则隐藏提示框
+            if (!this.classList.contains('active-clicked')) {
+                const tooltip = this.querySelector(':scope > .component-tooltip');
+                if (tooltip) {
+                    tooltip.classList.remove('visible');
+                    this.classList.remove('active');
+                    // 添加过渡效果后再隐藏元素
+                    setTimeout(() => {
+                        tooltip.style.display = 'none';
+                    }, 250); // 与CSS过渡时间匹配
+                }
+                if (activeTooltip === this) {
+                    activeTooltip = null;
+                }
+            }
+        });
+        
+        // 点击固定/取消固定提示框
+        tag.addEventListener('click', function(event) {
+            // 阻止事件冒泡，防止触发父组件或子组件的点击事件
+            event.stopPropagation();
+            
+            // 切换激活状态
+            this.classList.toggle('active-clicked');
+            
+            // 如果取消固定，则在鼠标离开时隐藏提示框
+            if (!this.classList.contains('active-clicked')) {
+                // 模拟鼠标离开事件
+                const leaveEvent = new MouseEvent('mouseleave', {
+                    bubbles: false,
+                    cancelable: true
+                });
+                this.dispatchEvent(leaveEvent);
+            }
+        });
+    });
+    
+    // 点击其他区域关闭所有固定的提示框
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.component-tag')) {
+            // 关闭所有固定的提示框
+            document.querySelectorAll('.component-tag.active-clicked').forEach(tag => {
+                tag.classList.remove('active-clicked');
+                const tooltip = tag.querySelector(':scope > .component-tooltip');
+                if (tooltip) {
+                    tooltip.classList.remove('visible');
+                    // 添加过渡效果后再隐藏元素
+                    setTimeout(() => {
+                        tooltip.style.display = 'none';
+                    }, 250); // 与CSS过渡时间匹配
+                }
+                tag.classList.remove('active');
+            });
+            activeTooltip = null;
+        }
+    });
+    
+    // 为定语从句添加特殊样式
+    document.querySelectorAll('.component-clause').forEach(clause => {
+        // 添加特殊标记
+        const clauseType = clause.getAttribute('data-component-type');
+        const clauseLabel = clause.querySelector('.component-label');
+        if (clauseLabel) {
+            clauseLabel.textContent = `${getComponentName(clauseType)}(从句)`;
+        }
+    });
 }
 
 // 导出函数以便在HTML中使用
