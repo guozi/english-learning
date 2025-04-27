@@ -627,6 +627,42 @@ function setupComponentInteractions() {
     const componentTags = document.querySelectorAll('.component-tag');
     let activeTooltip = null;
     
+    // 隐藏所有tooltip的辅助函数
+    function hideAllTooltips() {
+        document.querySelectorAll('.component-tooltip.visible').forEach(tooltip => {
+            tooltip.classList.remove('visible');
+            setTimeout(() => {
+                tooltip.style.display = 'none';
+            }, 250); // 与CSS过渡时间匹配
+        });
+        document.querySelectorAll('.component-tag.active').forEach(tag => {
+            tag.classList.remove('active');
+        });
+        activeTooltip = null;
+    }
+    
+    // 隐藏特定tooltip的辅助函数
+    function hideTooltip(tag) {
+        const tooltip = tag.querySelector(':scope > .component-tooltip');
+        if (tooltip) {
+            tooltip.classList.remove('visible');
+            tag.classList.remove('active');
+            setTimeout(() => {
+                tooltip.style.display = 'none';
+            }, 250); // 与CSS过渡时间匹配
+        }
+        if (activeTooltip === tag) {
+            activeTooltip = null;
+        }
+    }
+    
+    // 检查元素是否为嵌套组件的辅助函数
+    function isNestedComponent(element) {
+        // 检查是否在定语从句内部的嵌套组件
+        return element.closest('.component-clause') && 
+               element.closest('.component-clause') !== element;
+    }
+    
     // 为每个标签添加事件监听器
     componentTags.forEach(tag => {
         // 鼠标悬停显示提示框
@@ -634,11 +670,35 @@ function setupComponentInteractions() {
             // 阻止事件冒泡，防止触发父组件的事件
             event.stopPropagation();
             
-            // 隐藏之前可能显示的提示框
-            if (activeTooltip && activeTooltip !== this) {
+            // 检查是否在定语从句内部的嵌套组件
+            const isNestedInClause = isNestedComponent(this);
+            
+            // 如果是嵌套组件，检查父组件是否已激活
+            if (isNestedInClause) {
+                const parentClause = this.closest('.component-clause');
+                
+                // 如果父组件已激活或已被点击固定，则隐藏父组件的tooltip
+                if (parentClause.classList.contains('active') || 
+                    parentClause.classList.contains('active-clicked')) {
+                    const parentTooltip = parentClause.querySelector(':scope > .component-tooltip');
+                    if (parentTooltip && parentTooltip.classList.contains('visible')) {
+                        parentTooltip.classList.remove('visible');
+                        setTimeout(() => {
+                            parentTooltip.style.display = 'none';
+                        }, 250);
+                    }
+                }
+            }
+            
+            // 隐藏之前可能显示的提示框（如果不是当前组件的父组件）
+            if (activeTooltip && activeTooltip !== this && 
+                (!isNestedInClause || activeTooltip !== this.closest('.component-clause'))) {
                 const prevTooltip = activeTooltip.querySelector(':scope > .component-tooltip');
                 if (prevTooltip) {
                     prevTooltip.classList.remove('visible');
+                    setTimeout(() => {
+                        prevTooltip.style.display = 'none';
+                    }, 250);
                 }
                 activeTooltip.classList.remove('active');
             }
@@ -654,6 +714,20 @@ function setupComponentInteractions() {
                     this.classList.add('active');
                 }, 10);
                 activeTooltip = this;
+                
+                // 如果是定语从句，确保其内部组件的tooltip不会显示
+                if (this.classList.contains('component-clause')) {
+                    const nestedTags = this.querySelectorAll('.component-tag');
+                    nestedTags.forEach(nestedTag => {
+                        if (nestedTag !== this) {
+                            const nestedTooltip = nestedTag.querySelector('.component-tooltip');
+                            if (nestedTooltip) {
+                                nestedTooltip.style.display = 'none';
+                                nestedTooltip.classList.remove('visible');
+                            }
+                        }
+                    });
+                }
             }
         });
         
@@ -664,17 +738,20 @@ function setupComponentInteractions() {
             
             // 如果没有被点击固定，则隐藏提示框
             if (!this.classList.contains('active-clicked')) {
-                const tooltip = this.querySelector(':scope > .component-tooltip');
-                if (tooltip) {
-                    tooltip.classList.remove('visible');
-                    this.classList.remove('active');
-                    // 添加过渡效果后再隐藏元素
-                    setTimeout(() => {
-                        tooltip.style.display = 'none';
-                    }, 250); // 与CSS过渡时间匹配
-                }
-                if (activeTooltip === this) {
-                    activeTooltip = null;
+                hideTooltip(this);
+                
+                // 如果是嵌套组件，检查是否需要恢复父组件的tooltip
+                if (isNestedComponent(this)) {
+                    const parentClause = this.closest('.component-clause');
+                    if (parentClause.classList.contains('active-clicked')) {
+                        const parentTooltip = parentClause.querySelector(':scope > .component-tooltip');
+                        if (parentTooltip) {
+                            parentTooltip.style.display = 'block';
+                            setTimeout(() => {
+                                parentTooltip.classList.add('visible');
+                            }, 10);
+                        }
+                    }
                 }
             }
         });
@@ -684,17 +761,43 @@ function setupComponentInteractions() {
             // 阻止事件冒泡，防止触发父组件或子组件的点击事件
             event.stopPropagation();
             
-            // 切换激活状态
+            // 检查是否在定语从句内部的嵌套组件
+            const isNestedInClause = isNestedComponent(this);
+            
+            // 如果是嵌套组件，先处理父组件的tooltip
+            if (isNestedInClause) {
+                const parentClause = this.closest('.component-clause');
+                
+                // 如果父组件已被点击固定，则取消父组件的固定状态
+                if (parentClause.classList.contains('active-clicked')) {
+                    parentClause.classList.remove('active-clicked');
+                    const parentTooltip = parentClause.querySelector(':scope > .component-tooltip');
+                    if (parentTooltip) {
+                        parentTooltip.classList.remove('visible');
+                        setTimeout(() => {
+                            parentTooltip.style.display = 'none';
+                        }, 250);
+                    }
+                }
+            }
+            
+            // 切换当前组件的激活状态
             this.classList.toggle('active-clicked');
             
             // 如果取消固定，则在鼠标离开时隐藏提示框
             if (!this.classList.contains('active-clicked')) {
-                // 模拟鼠标离开事件
-                const leaveEvent = new MouseEvent('mouseleave', {
-                    bubbles: false,
-                    cancelable: true
-                });
-                this.dispatchEvent(leaveEvent);
+                hideTooltip(this);
+            } else {
+                // 如果是定语从句，确保其内部组件的tooltip不会显示
+                if (this.classList.contains('component-clause')) {
+                    const nestedTags = this.querySelectorAll('.component-tag');
+                    nestedTags.forEach(nestedTag => {
+                        if (nestedTag !== this) {
+                            hideTooltip(nestedTag);
+                            nestedTag.classList.remove('active-clicked');
+                        }
+                    });
+                }
             }
         });
     });
@@ -705,17 +808,8 @@ function setupComponentInteractions() {
             // 关闭所有固定的提示框
             document.querySelectorAll('.component-tag.active-clicked').forEach(tag => {
                 tag.classList.remove('active-clicked');
-                const tooltip = tag.querySelector(':scope > .component-tooltip');
-                if (tooltip) {
-                    tooltip.classList.remove('visible');
-                    // 添加过渡效果后再隐藏元素
-                    setTimeout(() => {
-                        tooltip.style.display = 'none';
-                    }, 250); // 与CSS过渡时间匹配
-                }
-                tag.classList.remove('active');
+                hideTooltip(tag);
             });
-            activeTooltip = null;
         }
     });
     
