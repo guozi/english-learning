@@ -134,35 +134,23 @@
         <!-- 页面标题 -->
         <div class="mb-8 text-center">
             <h1 class="text-3xl md:text-4xl font-bold mb-4 text-primary-700 dark:text-primary-400">双语阅读</h1>
-            <p class="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">通过中英双语对照阅读，在上下文中学习英语，提高理解能力。</p>
+            <p class="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">通过中英双语对照阅读，支持中英文输入转换，在上下文中学习语言，提高理解能力。</p>
         </div>
 
         <!-- 输入区域 -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
             <h2 class="text-xl font-bold mb-4">输入文本</h2>
             <div class="mb-4">
-                <textarea id="input-text" rows="6" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700" placeholder="在此输入或粘贴你想要学习的英文或中文内容..."></textarea>
+                <textarea id="input-text" rows="6" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700" placeholder="在此输入或粘贴你想要学习的英文或中文内容，系统将自动翻译成对应语言..."></textarea>
             </div>
             <div class="flex justify-between items-center">
-                <div class="flex space-x-4">
-                    <div class="relative">
-                        <select id="input-language" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                            <option value="en">英文输入</option>
-                            <option value="zh">中文输入</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-200">
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                    </div>
-                    <div class="relative">
-                        <select id="difficulty-level" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                            <option value="easy">初级难度</option>
-                            <option value="medium" selected>中级难度</option>
-                            <option value="hard">高级难度</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-200">
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
+                <div class="relative">
+                    <select id="input-language" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="en">英文输入</option>
+                        <option value="zh">中文输入</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-200">
+                        <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
                 <button id="generate-button" class="bg-primary-600 hover:bg-primary-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50">

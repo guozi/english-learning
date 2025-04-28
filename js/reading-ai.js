@@ -7,8 +7,6 @@ import { AIService } from './ai-service.js';
 const aiService = new AIService();
 
 // DOM元素
-const topicSelect = document.getElementById('topic-select');
-const levelSelect = document.getElementById('level-select');
 const generateButton = document.getElementById('generate-button');
 const readingContainer = document.getElementById('reading-container');
 const vocabularyList = document.getElementById('vocabulary-list');
@@ -32,13 +30,17 @@ generateButton.addEventListener('click', async () => {
     try {
         // 显示加载指示器
         loadingIndicator.classList.remove('hidden');
-        
-        // 获取选择的主题和难度
-        const topic = topicSelect.value;
-        const level = levelSelect.value;
+
+        const inputText = document.getElementById('input-text').value.trim();
+        const inputLanguage = document.getElementById('input-language').value;
+    
+        if (!inputText) {
+            alert('请输入需要翻译的文本');
+            return;
+        }
         
         // 调用AI服务生成阅读内容
-        const readingContent = await generateReadingContent(topic, level);
+        const readingContent = await aiService.generateReadingContent(inputText, inputLanguage);
         
         // 更新当前阅读内容
         currentReading = readingContent;

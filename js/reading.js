@@ -2,10 +2,25 @@
 
 // 生成双语阅读内容
 document.getElementById('generate-button').addEventListener('click', () => {
+    const inputText = document.getElementById('input-text').value.trim();
+    const inputLanguage = document.getElementById('input-language').value;
+    
+    if (!inputText) {
+        alert('请输入需要翻译的文本');
+        return;
+    }
+    
     // 在实际应用中，这里应该发送请求到后端处理
     // 这里仅做演示，直接显示预设内容
     document.getElementById('reading-container').classList.remove('hidden');
     document.getElementById('vocabulary-list').classList.remove('hidden');
+    
+    // 根据输入语言设置示例内容的显示顺序
+    // 实际应用中应该调用翻译API
+    console.log(`处理${inputLanguage === 'en' ? '英文' : '中文'}输入: ${inputText}`);
+    
+    // 滚动到阅读区域
+    document.getElementById('reading-container').scrollIntoView({ behavior: 'smooth' });
 });
 
 // 切换显示模式
