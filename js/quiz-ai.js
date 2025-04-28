@@ -1,10 +1,8 @@
 // 测试模块的AI增强版JavaScript功能实现
 
 import { API_CONFIG, validateApiConfig } from './api-config.js';
-import { AIService } from './ai-service.js';
+import aiService from './ai-service.js';
 
-// 初始化AI服务
-const aiService = new AIService();
 
 // DOM元素
 const testSelection = document.getElementById('test-selection');
@@ -59,9 +57,9 @@ async function generateQuiz(type) {
         
         // 根据类型生成不同的测试题
         if (type === 'reading') {
-            currentQuestions = await generateReadingQuestions(currentReading);
+            currentQuestions = await aiService.generateReadingQuestions(currentReading);
         } else {
-            currentQuestions = await generateVocabularyQuestions(currentReading);
+            currentQuestions = await aiService.generateVocabularyQuestions(currentReading);
         }
         
         // 重置测试状态
@@ -82,94 +80,6 @@ async function generateQuiz(type) {
     } finally {
         // 隐藏加载指示器
         loadingIndicator.classList.add('hidden');
-    }
-}
-
-/**
- * 生成阅读理解题
- * @param {Object} reading - 阅读内容
- * @returns {Promise<Array>} - 问题数组
- */
-async function generateReadingQuestions(reading) {
-    // 构建提示词
-    const prompt = `
-    请根据以下英语阅读材料，生成5道多选题测试阅读理解：
-    
-    标题：${reading.title}
-    内容：${reading.english}
-    
-    请生成5道多选题，每题4个选项，只有1个正确答案。
-    每道题目应包含：问题、4个选项、正确答案索引（0-3）、解释。
-    
-    请以JSON格式返回，格式为：
-    [
-      {
-        "question": "问题内容",
-        "options": ["选项A", "选项B", "选项C", "选项D"],
-        "correctIndex": 0,
-        "explanation": "为什么这是正确答案的解释"
-      },
-      ...
-    ]
-    `;
-    
-    try {
-        // 发送请求到AI服务
-        const response = await aiService.sendRequest(prompt, {
-            temperature: 0.7,
-            maxTokens: API_CONFIG.features.quiz.maxTokens || 1500
-        });
-        
-        // 解析响应
-        const content = response.choices[0].message.content;
-        return JSON.parse(content);
-    } catch (error) {
-        console.error('AI服务请求失败:', error);
-        throw new Error('无法生成阅读理解题，请稍后再试');
-    }
-}
-
-/**
- * 生成词汇测试题
- * @param {Object} reading - 阅读内容
- * @returns {Promise<Array>} - 问题数组
- */
-async function generateVocabularyQuestions(reading) {
-    // 构建提示词
-    const prompt = `
-    请根据以下词汇列表，生成5道多选题测试词汇掌握程度：
-    
-    ${JSON.stringify(reading.vocabulary)}
-    
-    请生成5道多选题，每题4个选项，只有1个正确答案。
-    题目类型可以包括：选择正确释义、选择正确用法、选择近义词、选择反义词等。
-    每道题目应包含：问题、4个选项、正确答案索引（0-3）、解释。
-    
-    请以JSON格式返回，格式为：
-    [
-      {
-        "question": "问题内容",
-        "options": ["选项A", "选项B", "选项C", "选项D"],
-        "correctIndex": 0,
-        "explanation": "为什么这是正确答案的解释"
-      },
-      ...
-    ]
-    `;
-    
-    try {
-        // 发送请求到AI服务
-        const response = await aiService.sendRequest(prompt, {
-            temperature: 0.7,
-            maxTokens: API_CONFIG.features.quiz.maxTokens || 1500
-        });
-        
-        // 解析响应
-        const content = response.choices[0].message.content;
-        return JSON.parse(content);
-    } catch (error) {
-        console.error('AI服务请求失败:', error);
-        throw new Error('无法生成词汇测试题，请稍后再试');
     }
 }
 

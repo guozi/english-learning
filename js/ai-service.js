@@ -109,7 +109,7 @@ class AIService {
         5. 英语例句
         6. 例句中文翻译
 
-        请严格按照以下JSON格式返回，且包含以下字段，注意：格式为纯文本且无任何标记符号：
+        请严格按照以下JSON格式返回，且包含以下字段，注意：输出格式为纯文本且无任何其他标识和符号：
         [
           {
             "word": "单词",
@@ -125,7 +125,10 @@ class AIService {
         `;
 
         try {
-            const response = await this.sendRequest(prompt);
+            const response = await this.sendRequest(prompt, {
+              temperature: 0.7,
+              maxTokens: API_CONFIG.features.flashcards.maxTokens || 1000
+          });
             const content = response.choices[0].message.content;
             // 解析JSON响应
             return JSON.parse(content);
@@ -160,7 +163,7 @@ class AIService {
         5. 重要短语解析
         6. 语法要点解释
 
-        请严格按照以下JSON格式返回，且包含以下字段，注意：格式为纯文本且无任何标记符号：
+        请严格按照以下JSON格式返回，且包含以下字段，注意：输出格式为纯文本且无任何其他标识和符号：
         {
           "structure": {
             "type": "句子类型",
@@ -203,7 +206,10 @@ class AIService {
         `;
 
         try {
-            const response = await this.sendRequest(prompt);
+            const response = await this.sendRequest(prompt, {
+              temperature: 0.6,
+              maxTokens: API_CONFIG.features.sentenceAnalysis.maxTokens || 2000
+          });
             const content = response.choices[0].message.content;
             // 解析JSON响应
             return JSON.parse(content);
@@ -250,7 +256,7 @@ class AIService {
             4. 如遇文化差异、习语或专有名词，请合理本地化处理，并保持专业性
             5. 从文本中提取10个以内高频词汇，包含：英文单词、音标、中文释义、例句
             
-            请严格按照以下JSON格式返回，且包含以下字段，注意：格式为纯文本且无任何标记符号：
+            请严格按照以下JSON格式返回，且包含以下字段，注意：输出格式为纯文本且无任何其他标识和符号：
             {
               "english": "原始英文文本",
               "chinese": "中文翻译",
@@ -278,7 +284,7 @@ class AIService {
             4. 如遇文化差异、习语或专有名词，请合理本地化处理，并保持专业性
             5. 从英文翻译中提取10个以内高频词汇，包含：英文单词、音标、中文释义、例句
             
-            请严格按照以下JSON格式返回，且包含以下字段，注意：格式为纯文本且无任何标记符号：
+            请严格按照以下JSON格式返回，且包含以下字段，注意：输出格式为纯文本且无任何其他标识和符号：
             {
               "english": "英文翻译",
               "chinese": "原始中文文本",
@@ -323,29 +329,27 @@ class AIService {
      */
     async generateReadingQuestions(reading, questionCount = 5) {
         const prompt = `
-        请根据以下英语阅读材料，生成${questionCount}道多选题测试阅读理解：
+        请根据以下英语内容，生成${questionCount}道多选题测试阅读理解：
         
-        标题：${reading.title}
         内容：${reading.english}
         
-        请生成${questionCount}道多选题，每题4个选项，只有1个正确答案。
+        请生成${questionCount}道单选题，每题4个选项，只有1个正确答案。
         每道题目应包含：问题、4个选项、正确答案索引（0-3）、解释。
         
-        请以JSON格式返回，格式为：
+        请严格按照以下JSON格式返回，且包含以下字段，注意：输出格式为纯文本且无任何其他标识和符号：
         [
           {
             "question": "问题内容",
             "options": ["选项A", "选项B", "选项C", "选项D"],
             "correctIndex": 0,
             "explanation": "为什么这是正确答案的解释"
-          },
-          ...
+          }
         ]
         `;
         
         try {
             const response = await this.sendRequest(prompt, {
-                temperature: 0.7,
+                temperature: 0.6,
                 maxTokens: API_CONFIG.features.quiz.maxTokens || 1500
             });
             
@@ -365,24 +369,22 @@ class AIService {
      */
     async generateVocabularyQuestions(vocabulary, questionCount = 5) {
         const prompt = `
-        请根据以下词汇列表，生成${questionCount}道多选题测试词汇掌握程度：
+        请根据以下词汇列表，生成${questionCount}道单选题测试词汇掌握程度：
         
         ${JSON.stringify(vocabulary)}
         
-        请生成${questionCount}道多选题，每题4个选项，只有1个正确答案。
+        请生成${questionCount}道单选题，每题4个选项，只有1个正确答案。
         题目类型可以包括：选择正确释义、选择正确用法、选择近义词、选择反义词等。
         每道题目应包含：问题、4个选项、正确答案索引（0-3）、解释。
         
-        请以JSON格式返回，格式为：
+        请严格按照以下JSON格式返回，且包含以下字段，注意：输出格式为纯文本且无任何其他标识和符号：
         [
           {
             "question": "问题内容",
             "options": ["选项A", "选项B", "选项C", "选项D"],
             "correctIndex": 0,
             "explanation": "为什么这是正确答案的解释"
-          },
-          ...
-        ]
+          }
         `;
         
         try {

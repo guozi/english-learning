@@ -5,7 +5,7 @@ const API_CONFIG = {
     openai: {
         apiKey: '', // 在此处填入您的OpenAI API密钥
         model: 'gpt-3.5-turbo', // 默认模型
-        temperature: 0.7, // 创造性程度 (0-1)
+        temperature: 0.8, // 创造性程度 (0-1)
         maxTokens: 1000, // 最大令牌数
         baseUrl: 'https://api.openai.com/v1', // API基础URL
     },
@@ -15,7 +15,7 @@ const API_CONFIG = {
         provider: 'deepseek', // 可选值: 'none', 'azure', 'anthropic', 'other'
         apiKey: 'sk-ed6b5eca33424625828d2a40b56aeb84',
         model: 'deepseek-chat',
-        temperature: 0.6, // 创造性程度 (0-1)
+        temperature: 0.8, // 创造性程度 (0-1)
         maxTokens: 1000, // 最大令牌数
         baseUrl: 'https://api.deepseek.com/v1',
     },
@@ -32,10 +32,12 @@ const API_CONFIG = {
         flashcards: {
             enabled: true,
             maxWords: 10, // 每次提取的最大单词数
+            maxTokens: 1000, // 生成闪卡的最大令牌数
         },
         sentenceAnalysis: {
             enabled: true,
             maxLength: 200, // 最大句子长度
+            maxTokens: 2000, // 生成句子分析的最大令牌数
         },
         reading: {
             enabled: true,
