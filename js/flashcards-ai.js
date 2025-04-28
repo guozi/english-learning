@@ -187,9 +187,12 @@ function updateCardDisplay() {
         const flashcardElement = document.getElementById('flashcard');
         if (flashcardElement) {
             // 根据设备类型设置不同的高度
+            // 移动设备使用更灵活的高度设置，确保内容完全显示
             flashcardElement.style.height = isMobile ? 'auto' : '450px';
-            flashcardElement.style.minHeight = isMobile ? '350px' : '450px';
-            flashcardElement.style.maxHeight = isMobile ? '80vh' : '550px';
+            // 增加移动设备的最小高度，确保有足够空间显示内容
+            flashcardElement.style.minHeight = isMobile ? '400px' : '450px';
+            // 设置最大高度为视口高度的百分比，在小屏幕上提供更多空间
+            flashcardElement.style.maxHeight = isMobile ? '90vh' : '550px';
             // 确保卡片宽度适应不同屏幕
             flashcardElement.style.width = '100%';
             flashcardElement.style.maxWidth = isMobile ? '95%' : '500px';
@@ -201,7 +204,11 @@ function updateCardDisplay() {
         const innerCard = document.querySelector('.flashcard-inner');
         if (innerCard) {
             innerCard.style.width = '100%';
-            innerCard.style.height = '100%';
+            // 在移动设备上使用更合适的高度设置，而不是100%
+            // 这样可以确保内容完整显示，同时保持良好的翻转效果
+            innerCard.style.height = isMobile ? 'auto' : '100%';
+            // 确保移动设备上有足够的最小高度
+            innerCard.style.minHeight = isMobile ? '400px' : '';
         }
         
         // 调整卡片正面和背面
@@ -209,14 +216,16 @@ function updateCardDisplay() {
         const backCard = document.querySelector('.flashcard-back');
         
         if (frontCard && backCard) {
-            // 设置内边距，移动端更紧凑
-            frontCard.style.padding = isMobile ? '1rem' : '1.5rem';
-            backCard.style.padding = isMobile ? '1rem' : '1.5rem';
+            // 设置内边距，移动端使用更合适的内边距
+            frontCard.style.padding = isMobile ? '1.25rem' : '1.5rem';
+            backCard.style.padding = isMobile ? '1.25rem 1rem' : '1.5rem';
             
             // 确保背面有滚动功能但不影响布局
             backCard.style.overflowY = 'auto';
             backCard.style.display = 'flex';
             backCard.style.flexDirection = 'column';
+            // 增加内容间距，提高可读性
+            backCard.style.gap = '0.5rem';
         }
         
         // 更新正面 - 添加响应式字体大小
@@ -282,6 +291,12 @@ function updateCardDisplay() {
             contentContainer.style.flexDirection = 'column';
             contentContainer.style.gap = '0.75rem';
             contentContainer.style.overflowY = 'auto';
+            // 设置最大高度，确保在移动设备上内容可滚动
+            contentContainer.style.maxHeight = isMobile ? 'calc(90vh - 120px)' : '400px';
+            // 添加平滑滚动效果
+            contentContainer.style.scrollBehavior = 'smooth';
+            // 优化触摸滚动体验
+            contentContainer.style.WebkitOverflowScrolling = 'touch';
         }
         
         // 设置标题样式
