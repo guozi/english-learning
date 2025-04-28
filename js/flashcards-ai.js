@@ -97,7 +97,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 闪卡翻转
 flashcard.addEventListener('click', () => {
+    // 添加过渡动画类
+    const flashcardInner = document.querySelector('.flashcard-inner');
+    if (flashcardInner) {
+        // 确保翻转动画流畅
+        flashcardInner.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
+    }
+    
+    // 切换翻转状态
     flashcard.classList.toggle('flipped');
+    
+    // 在移动设备上，翻转后调整滚动位置，确保内容可见
+    if (window.innerWidth < 768 && flashcard.classList.contains('flipped')) {
+        // 延迟执行，等待翻转动画完成
+        setTimeout(() => {
+            // 确保卡片在视口中居中
+            flashcard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+    }
 });
 
 // 提取单词按钮点击事件
@@ -163,17 +180,151 @@ function updateCardDisplay() {
     if (words.length > 0) {
         const word = words[currentIndex];
         
-        // 更新正面
-        document.getElementById('word').textContent = word.word;
-        document.getElementById('phonetic').textContent = word.phonetic;
+        // 获取屏幕宽度，用于响应式调整
+        const isMobile = window.innerWidth < 768;
         
-        // 更新背面
-        document.getElementById('word-back').textContent = word.word;
-        document.getElementById('phonetic-back').textContent = word.phonetic;
-        document.getElementById('definition').textContent = word.definition;
-        document.getElementById('etymology').textContent = word.etymology;
-        document.getElementById('example').textContent = word.example;
-        document.getElementById('example-translation').textContent = word.exampleTranslation;
+        // 调整闪卡容器大小，确保内容适合
+        const flashcardElement = document.getElementById('flashcard');
+        if (flashcardElement) {
+            // 根据设备类型设置不同的高度
+            flashcardElement.style.height = isMobile ? 'auto' : '450px';
+            flashcardElement.style.minHeight = isMobile ? '350px' : '450px';
+            flashcardElement.style.maxHeight = isMobile ? '80vh' : '550px';
+            // 确保卡片宽度适应不同屏幕
+            flashcardElement.style.width = '100%';
+            flashcardElement.style.maxWidth = isMobile ? '95%' : '500px';
+            // 添加溢出处理
+            flashcardElement.style.overflow = 'hidden';
+        }
+        
+        // 调整卡片内部容器
+        const innerCard = document.querySelector('.flashcard-inner');
+        if (innerCard) {
+            innerCard.style.width = '100%';
+            innerCard.style.height = '100%';
+        }
+        
+        // 调整卡片正面和背面
+        const frontCard = document.querySelector('.flashcard-front');
+        const backCard = document.querySelector('.flashcard-back');
+        
+        if (frontCard && backCard) {
+            // 设置内边距，移动端更紧凑
+            frontCard.style.padding = isMobile ? '1rem' : '1.5rem';
+            backCard.style.padding = isMobile ? '1rem' : '1.5rem';
+            
+            // 确保背面有滚动功能但不影响布局
+            backCard.style.overflowY = 'auto';
+            backCard.style.display = 'flex';
+            backCard.style.flexDirection = 'column';
+        }
+        
+        // 更新正面 - 添加响应式字体大小
+        const wordElement = document.getElementById('word');
+        const phoneticElement = document.getElementById('phonetic');
+        
+        if (wordElement && phoneticElement) {
+            // 清除之前的类
+            wordElement.className = '';
+            phoneticElement.className = '';
+            
+            // 添加响应式类
+            wordElement.classList.add(
+                'text-2xl', 'md:text-3xl', 'lg:text-4xl',
+                'font-bold', 'mb-2', 'text-primary-700',
+                'dark:text-primary-400', 'text-center'
+            );
+            phoneticElement.classList.add(
+                'text-md', 'md:text-lg',
+                'text-gray-600', 'dark:text-gray-400',
+                'text-center'
+            );
+            
+            // 设置内容
+            wordElement.textContent = word.word;
+            phoneticElement.textContent = word.phonetic;
+        }
+        
+        // 更新背面 - 优化布局
+        const wordBackElement = document.getElementById('word-back');
+        const phoneticBackElement = document.getElementById('phonetic-back');
+        const definitionElement = document.getElementById('definition');
+        const etymologyElement = document.getElementById('etymology');
+        const exampleElement = document.getElementById('example');
+        const exampleTranslationElement = document.getElementById('example-translation');
+        
+        // 清除之前的类
+        [wordBackElement, phoneticBackElement, definitionElement, 
+         etymologyElement, exampleElement, exampleTranslationElement].forEach(el => {
+            if (el) el.className = '';
+        });
+        
+        // 设置背面标题样式
+        if (wordBackElement && phoneticBackElement) {
+            wordBackElement.classList.add(
+                'text-xl', 'md:text-2xl', 'font-bold',
+                'text-primary-700', 'dark:text-primary-400'
+            );
+            phoneticBackElement.classList.add(
+                'text-sm', 'md:text-md', 'text-gray-600',
+                'dark:text-gray-400', 'mb-3'
+            );
+            
+            // 设置内容
+            wordBackElement.textContent = word.word;
+            phoneticBackElement.textContent = word.phonetic;
+        }
+        
+        // 优化背面内容区域
+        const contentContainer = document.querySelector('.flashcard-back .flex-grow');
+        if (contentContainer) {
+            contentContainer.style.display = 'flex';
+            contentContainer.style.flexDirection = 'column';
+            contentContainer.style.gap = '0.75rem';
+            contentContainer.style.overflowY = 'auto';
+        }
+        
+        // 设置标题样式
+        const titleElements = document.querySelectorAll('.flashcard-back h4');
+        titleElements.forEach(el => {
+            el.classList.add(
+                'font-semibold', 'text-gray-800',
+                'dark:text-gray-200', 'text-sm', 'md:text-base'
+            );
+        });
+        
+        // 设置内容样式和文本
+        if (definitionElement) {
+            definitionElement.classList.add(
+                'text-sm', 'md:text-base', 'text-gray-700',
+                'dark:text-gray-300', 'break-words'
+            );
+            definitionElement.textContent = word.definition;
+        }
+        
+        if (etymologyElement) {
+            etymologyElement.classList.add(
+                'text-sm', 'md:text-base', 'text-gray-700',
+                'dark:text-gray-300', 'break-words'
+            );
+            etymologyElement.textContent = word.etymology;
+        }
+        
+        if (exampleElement) {
+            exampleElement.classList.add(
+                'text-sm', 'md:text-base', 'text-gray-700',
+                'dark:text-gray-300', 'italic', 'break-words'
+            );
+            exampleElement.textContent = word.example;
+        }
+        
+        if (exampleTranslationElement) {
+            exampleTranslationElement.classList.add(
+                'text-xs', 'md:text-sm', 'text-gray-600',
+                'dark:text-gray-400', 'break-words'
+            );
+            exampleTranslationElement.textContent = word.exampleTranslation;
+        }
         
         // 更新计数器
         currentCardIndex.textContent = currentIndex + 1;
@@ -207,34 +358,103 @@ function extractWords(words) {
 // 滑动操作
 let touchStartX = 0;
 let touchEndX = 0;
+let touchStartY = 0; // 添加Y轴触摸点，用于区分垂直滚动和水平滑动
+let touchEndY = 0;
 
 const swipeContainer = document.querySelector('.swipe-container');
 
-swipeContainer.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-});
+// 确保swipeContainer存在
+if (swipeContainer) {
+    // 触摸开始事件
+    swipeContainer.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    });
 
-swipeContainer.addEventListener('touchend', (e) => {
-    touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-});
+    // 触摸结束事件
+    swipeContainer.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+    });
+
+    // 添加鼠标事件支持，使桌面端也能通过拖拽切换卡片
+    let isDragging = false;
+    let startX = 0;
+
+    swipeContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        // 防止拖拽时选中文本
+        e.preventDefault();
+    });
+
+    swipeContainer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        // 可以添加拖拽视觉反馈
+    });
+
+    swipeContainer.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        
+        const endX = e.clientX;
+        const diffX = endX - startX;
+        
+        if (Math.abs(diffX) > 50) { // 使用与触摸相同的阈值
+            if (diffX > 0 && currentIndex > 0) {
+                // 向右拖拽 - 上一张
+                currentIndex--;
+                updateCardDisplay();
+            } else if (diffX < 0 && currentIndex < words.length - 1) {
+                // 向左拖拽 - 下一张
+                currentIndex++;
+                updateCardDisplay();
+            }
+        }
+        
+        isDragging = false;
+    });
+
+    // 如果鼠标离开容器，取消拖拽状态
+    swipeContainer.addEventListener('mouseleave', () => {
+        isDragging = false;
+    });
+}
 
 function handleSwipe() {
     const swipeThreshold = 50; // 滑动阈值
+    const verticalThreshold = 75; // 垂直移动阈值，用于区分滚动和滑动
     
-    if (touchEndX < touchStartX - swipeThreshold) {
-        // 向左滑动 - 下一张
-        if (currentIndex < words.length - 1) {
-            currentIndex++;
-            updateCardDisplay();
-        }
-    }
+    // 计算水平和垂直移动距离
+    const horizontalDistance = touchEndX - touchStartX;
+    const verticalDistance = Math.abs(touchEndY - touchStartY);
     
-    if (touchEndX > touchStartX + swipeThreshold) {
-        // 向右滑动 - 上一张
-        if (currentIndex > 0) {
-            currentIndex--;
-            updateCardDisplay();
+    // 只有当水平移动大于阈值且垂直移动小于阈值时才视为有效滑动
+    // 这样可以避免用户在滚动页面时意外触发滑动
+    if (Math.abs(horizontalDistance) > swipeThreshold && verticalDistance < verticalThreshold) {
+        if (horizontalDistance < 0) {
+            // 向左滑动 - 下一张
+            if (currentIndex < words.length - 1) {
+                currentIndex++;
+                updateCardDisplay();
+            }
+        } else {
+            // 向右滑动 - 上一张
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCardDisplay();
+            }
         }
     }
 }
+
+// 添加窗口大小变化监听，以便在屏幕尺寸变化时重新调整卡片大小
+window.addEventListener('resize', () => {
+    // 延迟执行以避免频繁触发
+    if (window.resizeTimeout) {
+        clearTimeout(window.resizeTimeout);
+    }
+    window.resizeTimeout = setTimeout(() => {
+        updateCardDisplay();
+    }, 250);
+});
