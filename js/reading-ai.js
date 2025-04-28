@@ -1,10 +1,7 @@
 // 双语阅读模块的AI增强版JavaScript功能实现
 
 import { API_CONFIG, validateApiConfig } from './api-config.js';
-import { AIService } from './ai-service.js';
-
-// 初始化AI服务
-const aiService = new AIService();
+import aiService from './ai-service.js';
 
 // DOM元素
 const generateButton = document.getElementById('generate-button');
@@ -17,6 +14,8 @@ const toggleViewButton = document.getElementById('toggle-view');
 const audioButton = document.getElementById('audio-button');
 const saveButton = document.getElementById('save-button');
 const quizButton = document.getElementById('quiz-button');
+const parallelEnglish = document.getElementById('parallel-english');
+const parallelChinese = document.getElementById('parallel-chinese');
 
 // 当前阅读内容
 let currentReading = {
@@ -64,98 +63,78 @@ generateButton.addEventListener('click', async () => {
 });
 
 /**
- * 调用AI服务生成阅读内容
- * @param {string} topic - 阅读主题
- * @param {string} level - 难度级别
- * @returns {Promise<Object>} - 阅读内容对象
- */
-async function generateReadingContent(topic, level) {
-    // 构建提示词
-    const prompt = `
-    请根据以下要求生成一篇英语阅读材料：
-    主题：${topic}
-    难度级别：${level}（初级/中级/高级）
-    
-    请提供以下内容：
-    1. 英语原文（300-500字）
-    2. 中文翻译
-    3. 10个重要词汇，包含：英文单词、音标、中文释义、例句
-    
-    请以JSON格式返回，格式为：
-    {
-      "title": "标题",
-      "english": "英语原文...",
-      "chinese": "中文翻译...",
-      "vocabulary": [
-        {
-          "word": "单词",
-          "phonetic": "音标",
-          "meaning": "中文释义",
-          "example": "例句"
-        },
-        ...
-      ]
-    }
-    `;
-    
-    try {
-        // 发送请求到AI服务
-        const response = await aiService.sendRequest(prompt, {
-            temperature: 0.7,
-            maxTokens: API_CONFIG.features.reading.maxTokens || 2000
-        });
-        
-        // 解析响应
-        const content = response.choices[0].message.content;
-        return JSON.parse(content);
-    } catch (error) {
-        console.error('AI服务请求失败:', error);
-        throw new Error('无法生成阅读内容，请稍后再试');
-    }
-}
-
-/**
  * 显示阅读内容
  * @param {Object} readingContent - 阅读内容对象
  */
 function displayReadingContent(readingContent) {
-    // 显示标题
-    document.getElementById('reading-title').textContent = readingContent.title;
+    // 处理交替显示模式内容
+    alternateView.innerHTML = '';
     
-    // 显示英语原文
-    const englishContent = document.getElementById('english-content');
-    englishContent.innerHTML = readingContent.english;
+    // 将内容分段处理
+    const paragraphs = readingContent.english.split('\n').filter(p => p.trim() !== '');
+    const chineseParagraphs = readingContent.chinese.split('\n').filter(p => p.trim() !== '');
     
-    // 显示中文翻译
-    const chineseContent = document.getElementById('chinese-content');
-    chineseContent.innerHTML = readingContent.chinese;
+    // 创建交替显示的段落
+    for (let i = 0; i < paragraphs.length; i++) {
+        const paragraphGroup = document.createElement('div');
+        paragraphGroup.className = 'paragraph-group';
+        
+        // 英文段落
+        const englishPara = document.createElement('p');
+        englishPara.className = 'text-lg mb-2 leading-relaxed';
+        englishPara.innerHTML = paragraphs[i];
+        
+        // 中文段落
+        const chinesePara = document.createElement('p');
+        chinesePara.className = 'text-base text-gray-600 dark:text-gray-400 leading-relaxed';
+        chinesePara.textContent = chineseParagraphs[i] || '';
+        
+        paragraphGroup.appendChild(englishPara);
+        paragraphGroup.appendChild(chinesePara);
+        alternateView.appendChild(paragraphGroup);
+    }
     
-    // 显示平行视图
-    const parallelEnglish = document.getElementById('parallel-english');
-    const parallelChinese = document.getElementById('parallel-chinese');
-    parallelEnglish.innerHTML = readingContent.english;
-    parallelChinese.innerHTML = readingContent.chinese;
+    // 处理并排显示模式内容
+    parallelEnglish.innerHTML = '';
+    parallelChinese.innerHTML = '';
+    
+    // 创建并排显示的段落
+    paragraphs.forEach(paragraph => {
+        const para = document.createElement('p');
+        para.className = 'text-lg leading-relaxed';
+        para.innerHTML = paragraph;
+        parallelEnglish.appendChild(para);
+    });
+    
+    chineseParagraphs.forEach(paragraph => {
+        const para = document.createElement('p');
+        para.className = 'text-base text-gray-600 dark:text-gray-400 leading-relaxed';
+        para.textContent = paragraph;
+        parallelChinese.appendChild(para);
+    });
     
     // 显示词汇列表
     const vocabContainer = document.getElementById('vocab-container');
     vocabContainer.innerHTML = '';
     
-    readingContent.vocabulary.forEach(vocab => {
-        const vocabItem = document.createElement('div');
-        vocabItem.className = 'bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-3';
-        vocabItem.innerHTML = `
-            <div class="flex justify-between items-start mb-2">
-                <h3 class="text-lg font-bold text-gray-800 dark:text-white">${vocab.word}</h3>
-                <span class="text-sm text-gray-500 dark:text-gray-400">${vocab.phonetic}</span>
-            </div>
-            <p class="text-gray-700 dark:text-gray-300 mb-2">${vocab.meaning}</p>
-            <p class="text-gray-600 dark:text-gray-400 italic text-sm">${vocab.example}</p>
-        `;
-        vocabContainer.appendChild(vocabItem);
-    });
+    if (readingContent.vocabulary && readingContent.vocabulary.length > 0) {
+        readingContent.vocabulary.forEach(vocab => {
+            const vocabItem = document.createElement('div');
+            vocabItem.className = 'bg-gray-50 dark:bg-gray-700 p-4 rounded-lg';
+            vocabItem.innerHTML = `
+                <h3 class="font-bold text-primary-600 dark:text-primary-400">${vocab.word}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">${vocab.meaning}</p>
+                ${vocab.etymology ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">词根: ${vocab.etymology}</p>` : ''}
+                ${vocab.example ? `<p class="text-sm italic mt-2">${vocab.example}</p>` : ''}
+            `;
+            vocabContainer.appendChild(vocabItem);
+        });
+    }
     
     // 高亮显示词汇
-    highlightVocabulary(readingContent.vocabulary);
+    if (readingContent.vocabulary && readingContent.vocabulary.length > 0) {
+        highlightVocabulary(readingContent.vocabulary);
+    }
 }
 
 /**
@@ -163,19 +142,26 @@ function displayReadingContent(readingContent) {
  * @param {Array} vocabulary - 词汇数组
  */
 function highlightVocabulary(vocabulary) {
-    const englishContent = document.getElementById('english-content');
-    const parallelEnglish = document.getElementById('parallel-english');
+    // 获取所有英文段落
+    const englishParagraphs = alternateView.querySelectorAll('.paragraph-group p:first-child');
+    const parallelParagraphs = parallelEnglish.querySelectorAll('p');
     
-    let html = englishContent.innerHTML;
-    
+    // 处理每个词汇
     vocabulary.forEach(vocab => {
         const word = vocab.word;
         const regex = new RegExp(`\\b${word}\\b`, 'gi');
-        html = html.replace(regex, `<span class="highlighted-word" data-word="${word}">$&<div class="word-tooltip">${vocab.meaning}</div></span>`);
+        const tooltipContent = `<span class="word-tooltip"><strong>${vocab.meaning}</strong>${vocab.etymology ? `<br>词根: ${vocab.etymology}` : ''}${vocab.example ? `<br>例句: ${vocab.example}` : ''}</span>`;
+        
+        // 处理交替显示模式中的段落
+        englishParagraphs.forEach(paragraph => {
+            paragraph.innerHTML = paragraph.innerHTML.replace(regex, `<span class="highlighted-word">$&${tooltipContent}</span>`);
+        });
+        
+        // 处理并排显示模式中的段落
+        parallelParagraphs.forEach(paragraph => {
+            paragraph.innerHTML = paragraph.innerHTML.replace(regex, `<span class="highlighted-word">$&${tooltipContent}</span>`);
+        });
     });
-    
-    englishContent.innerHTML = html;
-    parallelEnglish.innerHTML = html;
 }
 
 /**

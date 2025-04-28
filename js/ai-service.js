@@ -228,37 +228,72 @@ class AIService {
     
     /**
      * 生成双语阅读内容
-     * @param {string} topic - 阅读主题
-     * @param {string} level - 难度级别
+     * @param {string} inputText - 输入文本
+     * @param {string} inputLanguage - 输入语言类型（'zh'或'en'）
      * @returns {Promise<Object>} - 阅读内容对象
      */
-    async generateReadingContent(topic, level) {
-        const prompt = `
-        请根据以下要求生成一篇英语阅读材料：
-        主题：${topic}
-        难度级别：${level}（初级/中级/高级）
+    async generateReadingContent(inputText, inputLanguage = 'en') {
+        // 根据输入语言类型构建不同的提示词
+        let prompt;
         
-        请提供以下内容：
-        1. 英语原文（300-500字）
-        2. 中文翻译
-        3. 10个重要词汇，包含：英文单词、音标、中文释义、例句
-        
-        请以JSON格式返回，格式为：
-        {
-          "title": "标题",
-          "english": "英语原文...",
-          "chinese": "中文翻译...",
-          "vocabulary": [
+        if (inputLanguage === 'en') {
+            // 如果输入是英文，需要翻译成中文
+            prompt = `
+            请作为一位专业的中英文翻译专家，在准确传达原文意思，语言自然流畅，符合目标语言文化习惯的要求下，将以下英文文本翻译成中文，并提取重要词汇：
+            
+            英文原文：${inputText}
+            
+            请提供以下内容：
+            1. 保持原始英文文本不变
+            2. 高质量的中文翻译
+            3. 保持原文意境与情感
+            4. 如遇文化差异、习语或专有名词，请合理本地化处理，并保持专业性。
+            5. 从文本中提取10个以内高频词汇，包含：英文单词、音标、中文释义、例句
+            
+            请严格按照以下JSON格式返回，且包含以下字段，注意：格式为纯文本且无任何标记符号：
             {
-              "word": "单词",
-              "phonetic": "音标",
-              "meaning": "中文释义",
-              "example": "例句"
-            },
-            ...
-          ]
+              "english": "原始英文文本",
+              "chinese": "中文翻译",
+              "vocabulary": [
+                {
+                  "word": "单词",
+                  "phonetic": "音标",
+                  "meaning": "中文释义",
+                  "example": "例句"
+                }
+              ]
+            }
+            `;
+        } else {
+            // 如果输入是中文，需要翻译成英文
+            prompt = `
+            请作为一位专业的中英文翻译专家，在准确传达原文意思，语言自然流畅，符合目标语言文化习惯的要求下，请将以下中文文本翻译成英文，并提取重要词汇：
+            
+            中文原文：${inputText}
+            
+            请提供以下内容：
+            1. 高质量的英文翻译
+            2. 保持原始中文文本不变
+            3. 保持原文意境与情感
+            4. 如遇文化差异、习语或专有名词，请合理本地化处理，并保持专业性。
+            5. 从英文翻译中提取10个以内高频词汇，包含：英文单词、音标、中文释义、例句
+            
+            请严格按照以下JSON格式返回，且包含以下字段，注意：格式为纯文本且无任何标记符号：
+            {
+              "english": "英文翻译",
+              "chinese": "原始中文文本",
+              "vocabulary": [
+                {
+                  "word": "单词",
+                  "phonetic": "音标",
+                  "meaning": "中文释义",
+                  "example": "例句"
+                }
+              ]
+            }
+            `;
         }
-        `;
+        
         
         try {
             const response = await this.sendRequest(prompt, {
@@ -267,10 +302,17 @@ class AIService {
             });
             
             const content = response.choices[0].message.content;
-            return JSON.parse(content);
+            const result = JSON.parse(content);
+            
+            // 确保返回的数据包含所有必要字段
+            if (!result.english || !result.chinese || !Array.isArray(result.vocabulary)) {
+                throw new Error('AI返回的数据格式不正确');
+            }
+            
+            return result;
         } catch (error) {
-            console.error('生成阅读内容失败:', error);
-            throw new Error('无法生成阅读内容，请稍后再试');
+            console.error('生成双语内容失败:', error);
+            throw new Error(`无法生成双语内容: ${error.message}`);
         }
     }
 

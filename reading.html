@@ -174,34 +174,19 @@
                 </div>
             </div>
 
-            <!-- 示例内容 - 交替显示模式 (默认) -->
+            <!-- 交替显示模式 (默认) -->
             <div id="alternate-view" class="space-y-6 font-serif">
-                <div class="paragraph-group">
-                    <p class="text-lg mb-2 leading-relaxed">Learning a new language is like embarking on a journey to a new world. It opens doors to different cultures, perspectives, and ways of thinking. <span class="highlighted-word">Persistence<span class="word-tooltip"><strong>坚持</strong><br>词根: persist (坚持) + ence (名词后缀)<br>例句: Her persistence in studying paid off when she passed the exam.</span></span> is key to mastering any language.</p>
-                    <p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">学习一门新语言就像踏上通往新世界的旅程。它为不同的文化、观点和思维方式打开了大门。坚持是掌握任何语言的关键。</p>
-                </div>
-                <div class="paragraph-group">
-                    <p class="text-lg mb-2 leading-relaxed">The <span class="highlighted-word">acquisition<span class="word-tooltip"><strong>习得，获得</strong><br>词根: acquire (获得) + tion (名词后缀)<br>例句: The acquisition of knowledge is a lifelong process.</span></span> of vocabulary is fundamental. Each word is a building block that helps construct sentences and express ideas. Reading books, watching movies, and engaging in conversations are excellent ways to <span class="highlighted-word">enhance<span class="word-tooltip"><strong>提高，增强</strong><br>词根: en (使) + hance (高)<br>例句: Regular practice will enhance your language skills.</span></span> your language skills.</p>
-                    <p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">词汇的习得是基础。每个单词都是帮助构建句子和表达想法的基石。阅读书籍、观看电影和参与对话是提高语言技能的绝佳方式。</p>
-                </div>
-                <div class="paragraph-group">
-                    <p class="text-lg mb-2 leading-relaxed">Don't be <span class="highlighted-word">intimidated<span class="word-tooltip"><strong>感到恐惧的，被吓倒的</strong><br>词根: in (使) + timid (胆怯的) + ate (使) + d (过去分词)<br>例句: Don't be intimidated by difficult grammar rules.</span></span> by mistakes; they are stepping stones to fluency. Every error is an opportunity to learn and improve. The journey of language learning is not about reaching a destination but enjoying the process of growth and discovery.</p>
-                    <p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">不要被错误吓倒；它们是通向流利的垫脚石。每个错误都是学习和提高的机会。语言学习的旅程不是为了到达目的地，而是享受成长和发现的过程。</p>
-                </div>
+                <!-- 动态内容将通过JavaScript加载 -->
             </div>
 
             <!-- 并排显示模式 -->
             <div id="parallel-view" class="hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-serif">
-                    <div class="space-y-6">
-                        <p class="text-lg leading-relaxed">Learning a new language is like embarking on a journey to a new world. It opens doors to different cultures, perspectives, and ways of thinking. <span class="highlighted-word">Persistence<span class="word-tooltip"><strong>坚持</strong><br>词根: persist (坚持) + ence (名词后缀)<br>例句: Her persistence in studying paid off when she passed the exam.</span></span> is key to mastering any language.</p>
-                        <p class="text-lg leading-relaxed">The <span class="highlighted-word">acquisition<span class="word-tooltip"><strong>习得，获得</strong><br>词根: acquire (获得) + tion (名词后缀)<br>例句: The acquisition of knowledge is a lifelong process.</span></span> of vocabulary is fundamental. Each word is a building block that helps construct sentences and express ideas. Reading books, watching movies, and engaging in conversations are excellent ways to <span class="highlighted-word">enhance<span class="word-tooltip"><strong>提高，增强</strong><br>词根: en (使) + hance (高)<br>例句: Regular practice will enhance your language skills.</span></span> your language skills.</p>
-                        <p class="text-lg leading-relaxed">Don't be <span class="highlighted-word">intimidated<span class="word-tooltip"><strong>感到恐惧的，被吓倒的</strong><br>词根: in (使) + timid (胆怯的) + ate (使) + d (过去分词)<br>例句: Don't be intimidated by difficult grammar rules.</span></span> by mistakes; they are stepping stones to fluency. Every error is an opportunity to learn and improve. The journey of language learning is not about reaching a destination but enjoying the process of growth and discovery.</p>
+                    <div id="parallel-english" class="space-y-6">
+                        <!-- 英文内容将在此显示 -->
                     </div>
-                    <div class="space-y-6">
-                        <p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">学习一门新语言就像踏上通往新世界的旅程。它为不同的文化、观点和思维方式打开了大门。坚持是掌握任何语言的关键。</p>
-                        <p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">词汇的习得是基础。每个单词都是帮助构建句子和表达想法的基石。阅读书籍、观看电影和参与对话是提高语言技能的绝佳方式。</p>
-                        <p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed">不要被错误吓倒；它们是通向流利的垫脚石。每个错误都是学习和提高的机会。语言学习的旅程不是为了到达目的地，而是享受成长和发现的过程。</p>
+                    <div id="parallel-chinese" class="space-y-6">
+                        <!-- 中文内容将在此显示 -->
                     </div>
                 </div>
             </div>
@@ -220,31 +205,8 @@
         <!-- 词汇列表 -->
         <div id="vocabulary-list" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8 hidden">
             <h2 class="text-xl font-bold mb-4">重点词汇列表</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <h3 class="font-bold text-primary-600 dark:text-primary-400">persistence</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">坚持</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">词根: persist (坚持) + ence (名词后缀)</p>
-                    <p class="text-sm italic mt-2">Her persistence in studying paid off when she passed the exam.</p>
-                </div>
-                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <h3 class="font-bold text-primary-600 dark:text-primary-400">acquisition</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">习得，获得</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">词根: acquire (获得) + tion (名词后缀)</p>
-                    <p class="text-sm italic mt-2">The acquisition of knowledge is a lifelong process.</p>
-                </div>
-                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <h3 class="font-bold text-primary-600 dark:text-primary-400">enhance</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">提高，增强</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">词根: en (使) + hance (高)</p>
-                    <p class="text-sm italic mt-2">Regular practice will enhance your language skills.</p>
-                </div>
-                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <h3 class="font-bold text-primary-600 dark:text-primary-400">intimidated</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">感到恐惧的，被吓倒的</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">词根: in (使) + timid (胆怯的) + ate (使) + d (过去分词)</p>
-                    <p class="text-sm italic mt-2">Don't be intimidated by difficult grammar rules.</p>
-                </div>
+            <div id="vocab-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 词汇内容将通过JavaScript动态加载 -->
             </div>
         </div>
     </main>
