@@ -74,24 +74,19 @@ function displayReadingContent(readingContent) {
     const paragraphs = readingContent.english.split('\n').filter(p => p.trim() !== '');
     const chineseParagraphs = readingContent.chinese.split('\n').filter(p => p.trim() !== '');
     
-    // 创建交替显示的段落
+    // 创建交替显示的段落 - 一行英文一行中文的上下布局
     for (let i = 0; i < paragraphs.length; i++) {
-        const paragraphGroup = document.createElement('div');
-        paragraphGroup.className = 'paragraph-group';
+        // 英文句子
+        const englishSentence = document.createElement('p');
+        englishSentence.className = 'text-lg leading-relaxed mb-1';
+        englishSentence.innerHTML = paragraphs[i];
+        alternateView.appendChild(englishSentence);
         
-        // 英文段落
-        const englishPara = document.createElement('p');
-        englishPara.className = 'text-lg mb-2 leading-relaxed';
-        englishPara.innerHTML = paragraphs[i];
-        
-        // 中文段落
-        const chinesePara = document.createElement('p');
-        chinesePara.className = 'text-base text-gray-600 dark:text-gray-400 leading-relaxed';
-        chinesePara.textContent = chineseParagraphs[i] || '';
-        
-        paragraphGroup.appendChild(englishPara);
-        paragraphGroup.appendChild(chinesePara);
-        alternateView.appendChild(paragraphGroup);
+        // 中文句子
+        const chineseSentence = document.createElement('p');
+        chineseSentence.className = 'text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4';
+        chineseSentence.textContent = chineseParagraphs[i] || '';
+        alternateView.appendChild(chineseSentence);
     }
     
     // 处理并排显示模式内容
@@ -142,8 +137,15 @@ function displayReadingContent(readingContent) {
  * @param {Array} vocabulary - 词汇数组
  */
 function highlightVocabulary(vocabulary) {
-    // 获取所有英文段落
-    const englishParagraphs = alternateView.querySelectorAll('.paragraph-group p:first-child');
+    // 获取所有英文段落 - 在交替显示模式中，英文段落是每两个p元素中的第一个
+    const alternateEnglishParagraphs = [];
+    const allParagraphs = alternateView.querySelectorAll('p');
+    
+    // 筛选出英文段落（在交替显示模式中是奇数索引的段落）
+    for (let i = 0; i < allParagraphs.length; i += 2) {
+        alternateEnglishParagraphs.push(allParagraphs[i]);
+    }
+    
     const parallelParagraphs = parallelEnglish.querySelectorAll('p');
     
     // 处理每个词汇
@@ -152,8 +154,8 @@ function highlightVocabulary(vocabulary) {
         const regex = new RegExp(`\\b${word}\\b`, 'gi');
         const tooltipContent = `<span class="word-tooltip"><strong>${vocab.meaning}</strong>${vocab.etymology ? `<br>词根: ${vocab.etymology}` : ''}${vocab.example ? `<br>例句: ${vocab.example}` : ''}</span>`;
         
-        // 处理交替显示模式中的段落
-        englishParagraphs.forEach(paragraph => {
+        // 处理交替显示模式中的英文段落
+        alternateEnglishParagraphs.forEach(paragraph => {
             paragraph.innerHTML = paragraph.innerHTML.replace(regex, `<span class="highlighted-word">$&${tooltipContent}</span>`);
         });
         
