@@ -10,6 +10,7 @@ const quizContainer = document.getElementById('quiz-container');
 const resultContainer = document.getElementById('result-container');
 const progressBar = document.getElementById('progress-bar');
 const questionCounter = document.getElementById('question-counter');
+const passageText = document.getElementById('passage-text');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const nextButton = document.getElementById('next-button');
@@ -57,9 +58,9 @@ async function generateQuiz(type) {
         
         // 根据类型生成不同的测试题
         if (type === 'reading') {
-            currentQuestions = await aiService.generateReadingQuestions(currentReading);
+            currentQuestions = await aiService.generateReadingQuestions(currentReading.english);
         } else {
-            currentQuestions = await aiService.generateVocabularyQuestions(currentReading);
+            currentQuestions = await aiService.generateVocabularyQuestions(currentReading.vocabulary);
         }
         
         // 重置测试状态
@@ -89,6 +90,9 @@ async function generateQuiz(type) {
  */
 function displayQuestion(index) {
     const question = currentQuestions[index];
+
+    // 更新问题内容
+    passageText.textContent = currentReading.english;
     
     // 更新问题文本
     questionText.textContent = question.question;
@@ -194,20 +198,35 @@ function showResults() {
     const score = Math.round((correctAnswers / currentQuestions.length) * 100);
     
     // 更新结果界面
-    document.getElementById('score-value').textContent = score;
-    document.getElementById('correct-count').textContent = correctAnswers;
-    document.getElementById('total-count').textContent = currentQuestions.length;
+    document.getElementById('result-percentage').textContent = `${score}%`;
+    document.getElementById('correct-count').textContent = `正确: ${correctAnswers}`;
+    document.getElementById('incorrect-count').textContent = `错误: ${currentQuestions.length - correctAnswers}`;
+    document.getElementById('points-earned').textContent = `得分: ${score}`;
     
-    // 根据得分显示不同的消息
-    const scoreMessage = document.getElementById('score-message');
-    if (score >= 90) {
-        scoreMessage.textContent = '太棒了！你的理解非常出色！';
-    } else if (score >= 70) {
-        scoreMessage.textContent = '做得很好！你已经掌握了大部分内容。';
-    } else if (score >= 50) {
-        scoreMessage.textContent = '不错的尝试！继续努力，你会做得更好。';
+    // 设置测试类型和时间
+    document.getElementById('result-test-type').textContent = testType === 'reading' ? '阅读理解测试' : '词汇测试';
+    document.getElementById('result-time').textContent = `完成时间: ${new Date().toLocaleString()}`;
+    
+    // 根据得分生成改进建议
+    const improvementAreas = document.getElementById('improvement-areas');
+    improvementAreas.innerHTML = '';
+    
+    if (score < 80) {
+        const suggestions = [
+            '加强阅读理解能力，注重把握文章主旨',
+            '扩大词汇量，特别是关键学术词汇',
+            '练习识别文章的逻辑结构和论证方式'
+        ];
+        
+        suggestions.forEach(suggestion => {
+            const li = document.createElement('li');
+            li.textContent = suggestion;
+            improvementAreas.appendChild(li);
+        });
     } else {
-        scoreMessage.textContent = '这次有点困难，再多练习一下吧！';
+        const li = document.createElement('li');
+        li.textContent = '你的表现很好！继续保持这种学习状态。';
+        improvementAreas.appendChild(li);
     }
     
     // 保存测试结果到本地存储
@@ -245,10 +264,133 @@ reviewButton.addEventListener('click', () => {
     resultContainer.classList.add('hidden');
     quizContainer.classList.remove('hidden');
     
+    // 筛选出用户答错的题目
+    const incorrectQuestions = [];
+    const incorrectIndices = [];
+    
+    userAnswers.forEach((answer, index) => {
+        if (answer !== currentQuestions[index].correctIndex) {
+            incorrectQuestions.push(currentQuestions[index]);
+            incorrectIndices.push(index);
+        }
+    });
+    
+    // 如果没有错题，显示提示
+    if (incorrectQuestions.length === 0) {
+        alert('恭喜！您没有答错任何题目！');
+        resultContainer.classList.remove('hidden');
+        quizContainer.classList.add('hidden');
+        return;
+    }
+    
+    // 创建一个临时变量来保存原始题目，以便在查看错题后可以恢复
+    const originalQuestions = [...currentQuestions];
+    const originalUserAnswers = [...userAnswers];
+    // 保存原始的正确答案数量
+    const originalCorrectAnswers = correctAnswers;
+    
+    // 替换为只包含错题的数组
+    currentQuestions = incorrectQuestions;
+    
     // 重置到第一题
     currentQuestionIndex = 0;
-    displayQuestion(currentQuestionIndex);
+    
+    // 更新问题计数器文本
+    questionCounter.textContent = `错题 1/${incorrectQuestions.length}`;
+    
+    // 显示第一道错题
+    displayIncorrectQuestion(currentQuestionIndex, incorrectIndices[currentQuestionIndex], originalUserAnswers);
+    
+    // 保存原始的下一题按钮点击处理函数
+    const originalNextButtonHandler = nextButton.onclick;
+    
+    // 创建新的下一题按钮处理函数
+    function reviewNextHandler() {
+        currentQuestionIndex++;
+        
+        if (currentQuestionIndex >= incorrectQuestions.length) {
+            // 恢复原始题目和用户答案
+            currentQuestions = originalQuestions;
+            userAnswers = originalUserAnswers;
+            // 恢复原始的正确答案数量
+            correctAnswers = originalCorrectAnswers;
+            
+            // 恢复下一题按钮的原始行为
+            nextButton.onclick = originalNextButtonHandler;
+            
+            // 返回结果页面
+            quizContainer.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+        } else {
+            // 显示下一道错题
+            displayIncorrectQuestion(currentQuestionIndex, incorrectIndices[currentQuestionIndex], originalUserAnswers);
+            
+            // 更新问题计数器
+            questionCounter.textContent = `错题 ${currentQuestionIndex + 1}/${incorrectQuestions.length}`;
+            
+            // 更新进度条
+            const progress = ((currentQuestionIndex + 1) / incorrectQuestions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+    }
+    
+    // 替换下一题按钮的点击处理函数
+    nextButton.onclick = reviewNextHandler;
 });
+
+/**
+ * 显示错误的问题，并标记用户的错误选择和正确答案
+ * @param {number} index - 当前错题索引
+ * @param {number} originalIndex - 原始题目中的索引
+ * @param {Array} originalAnswers - 原始用户答案
+ */
+function displayIncorrectQuestion(index, originalIndex, originalAnswers) {
+    const question = currentQuestions[index];
+
+    // 更新问题内容
+    passageText.textContent = currentReading.english;
+    
+    // 更新问题文本
+    questionText.textContent = question.question;
+    
+    // 清空选项容器
+    optionsContainer.innerHTML = '';
+    
+    // 获取用户的错误选择
+    const userWrongAnswer = originalAnswers[originalIndex];
+    
+    // 添加选项
+    question.options.forEach((option, i) => {
+        const optionElement = document.createElement('div');
+        let className = 'quiz-option bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-4 mb-3 flex justify-between items-center';
+        
+        // 标记正确答案和用户错误选择
+        if (i === question.correctIndex) {
+            className += ' correct';
+        } else if (i === userWrongAnswer) {
+            className += ' incorrect';
+        }
+        
+        optionElement.className = className;
+        
+        // 添加选项内容
+        optionElement.innerHTML = `
+            <span>${option}</span>
+            <span class="option-marker">
+                ${i === question.correctIndex ? '<i class="fas fa-check-circle text-green-500"></i>' : ''}
+                ${i === userWrongAnswer ? '<i class="fas fa-times-circle text-red-500"></i>' : ''}
+            </span>
+        `;
+        
+        optionsContainer.appendChild(optionElement);
+    });
+    
+    // 显示解释
+    const explanationElement = document.createElement('div');
+    explanationElement.className = 'mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm';
+    explanationElement.innerHTML = `<strong>解释：</strong>${question.explanation}`;
+    optionsContainer.appendChild(explanationElement);
+}
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', () => {

@@ -36,6 +36,7 @@
             }
         }
     </script>
+
     <style>
         /* 自定义样式 */
         .quiz-option {
@@ -139,7 +140,7 @@
                     </div>
                     <p class="text-gray-600 dark:text-gray-300 mb-4">测试你对学习过的重点词汇的掌握情况。</p>
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">10-15 道题目</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">5-10 道题目</span>
                         <button class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition duration-300">开始测试</button>
                     </div>
                 </div>
@@ -151,7 +152,7 @@
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold">阅读理解测试</h2>
                 <div class="flex items-center space-x-2">
-                    <span id="question-counter" class="text-sm font-medium">问题 1/10</span>
+                    <span id="question-counter" class="text-sm font-medium">问题 1/5</span>
                     <div class="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div id="progress-bar" class="progress-bar h-full bg-primary-600 dark:bg-primary-500" style="width: 10%"></div>
                     </div>
@@ -163,44 +164,13 @@
                 <div class="mb-6">
                     <h3 class="text-lg font-bold mb-3">阅读段落</h3>
                     <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4 font-serif">
-                        <p class="text-base leading-relaxed">Learning a new language is like embarking on a journey to a new world. It opens doors to different cultures, perspectives, and ways of thinking. Persistence is key to mastering any language. The acquisition of vocabulary is fundamental. Each word is a building block that helps construct sentences and express ideas.</p>
+                        <p id="passage-text" class="text-base leading-relaxed"></p>
                     </div>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold mb-3">问题：根据段落内容，学习新语言最重要的是什么？</h3>
-                    <div class="space-y-3">
-                        <div class="quiz-option border border-gray-300 dark:border-gray-600 rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <div class="flex items-center">
-                                <div class="w-6 h-6 rounded-full border-2 border-gray-400 dark:border-gray-500 flex items-center justify-center mr-3">
-                                    <div class="option-selected hidden w-3 h-3 rounded-full bg-primary-600 dark:bg-primary-500"></div>
-                                </div>
-                                <span>掌握大量词汇</span>
-                            </div>
-                        </div>
-                        <div class="quiz-option border border-gray-300 dark:border-gray-600 rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <div class="flex items-center">
-                                <div class="w-6 h-6 rounded-full border-2 border-gray-400 dark:border-gray-500 flex items-center justify-center mr-3">
-                                    <div class="option-selected hidden w-3 h-3 rounded-full bg-primary-600 dark:bg-primary-500"></div>
-                                </div>
-                                <span>坚持不懈的学习</span>
-                            </div>
-                        </div>
-                        <div class="quiz-option border border-gray-300 dark:border-gray-600 rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <div class="flex items-center">
-                                <div class="w-6 h-6 rounded-full border-2 border-gray-400 dark:border-gray-500 flex items-center justify-center mr-3">
-                                    <div class="option-selected hidden w-3 h-3 rounded-full bg-primary-600 dark:bg-primary-500"></div>
-                                </div>
-                                <span>了解不同文化</span>
-                            </div>
-                        </div>
-                        <div class="quiz-option border border-gray-300 dark:border-gray-600 rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <div class="flex items-center">
-                                <div class="w-6 h-6 rounded-full border-2 border-gray-400 dark:border-gray-500 flex items-center justify-center mr-3">
-                                    <div class="option-selected hidden w-3 h-3 rounded-full bg-primary-600 dark:bg-primary-500"></div>
-                                </div>
-                                <span>构建完整句子</span>
-                            </div>
-                        </div>
+                    <h3 id="question-text" class="text-lg font-bold mb-3"></h3>
+                    <div id="options-container" class="space-y-3">
+                        <!-- 选项将通过JavaScript动态生成 -->
                     </div>
                 </div>
             </div>
@@ -222,11 +192,11 @@
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
                 <div class="flex justify-between items-center mb-4">
                     <div>
-                        <h3 class="text-lg font-bold">阅读理解测试</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">完成时间：2分30秒</p>
+                        <h3 id="result-test-type" class="text-lg font-bold">阅读理解测试</h3>
+                        <p id="result-time" class="text-sm text-gray-600 dark:text-gray-400"></p>
                     </div>
                     <div class="text-center">
-                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 text-2xl font-bold mb-1">80%</div>
+                        <div id="result-percentage" class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 text-2xl font-bold mb-1"></div>
                         <p class="text-sm">正确率</p>
                     </div>
                 </div>
@@ -237,28 +207,27 @@
                             <div class="bg-white dark:bg-gray-800 p-3 rounded-lg">
                                 <div class="flex items-center">
                                     <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                    <span>正确回答：8题</span>
+                                    <span id="correct-count"></span>
                                 </div>
                             </div>
                             <div class="bg-white dark:bg-gray-800 p-3 rounded-lg">
                                 <div class="flex items-center">
                                     <i class="fas fa-times-circle text-red-500 mr-2"></i>
-                                    <span>错误回答：2题</span>
+                                    <span id="incorrect-count"></span>
                                 </div>
                             </div>
                             <div class="bg-white dark:bg-gray-800 p-3 rounded-lg">
                                 <div class="flex items-center">
                                     <i class="fas fa-star text-yellow-500 mr-2"></i>
-                                    <span>获得积分：40分</span>
+                                    <span id="points-earned"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div>
                         <h4 class="font-medium mb-2">需要加强的方面</h4>
-                        <ul class="list-disc list-inside text-gray-600 dark:text-gray-300">
-                            <li>词汇理解 - 特别是与学术相关的词汇</li>
-                            <li>细节把握 - 注意文章中的细节信息</li>
+                        <ul id="improvement-areas" class="list-disc list-inside text-gray-600 dark:text-gray-300">
+                            <!-- 动态生成改进建议 -->
                         </ul>
                     </div>
                 </div>
@@ -380,10 +349,11 @@
     </script>
 
     <!-- 添加加载指示器 -->
-    <div id="loading-indicator" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-lg flex flex-col items-center">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 mb-3"></div>
-            <p class="text-gray-700 dark:text-gray-300">处理中，请稍候...</p>
+    <div id="loading-indicator" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 flex flex-col items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"></div>
+            <p class="text-lg font-medium">处理中，请稍候...</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">这可能需要几秒钟时间</p>
         </div>
     </div>
 

@@ -331,17 +331,17 @@ class AIService {
         const prompt = `
         请根据以下英语内容，生成${questionCount}道多选题测试阅读理解：
         
-        内容：${reading.english}
+        内容：${reading}
         
         请生成${questionCount}道单选题，每题4个选项，只有1个正确答案。
         每道题目应包含：问题、4个选项、正确答案索引（0-3）、解释。
         
-        请严格按照以下JSON格式返回，且包含以下字段，注意：输出格式为纯文本且无任何其他标识和符号：
+        请严格按照以下JSON格式返回，且包含以下字段，注意：输出格式为纯文本且无任何其他标识（Markdown、HTML等）和符号：
         [
           {
             "question": "问题内容",
             "options": ["选项A", "选项B", "选项C", "选项D"],
-            "correctIndex": 0,
+            "correctIndex": 正确答案索引（0-3）,
             "explanation": "为什么这是正确答案的解释"
           }
         ]
@@ -382,7 +382,7 @@ class AIService {
           {
             "question": "问题内容",
             "options": ["选项A", "选项B", "选项C", "选项D"],
-            "correctIndex": 0,
+            "correctIndex": 正确答案索引（0-3）,
             "explanation": "为什么这是正确答案的解释"
           }
         `;
