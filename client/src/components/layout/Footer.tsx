@@ -14,7 +14,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 英语学习助手. 保留所有权利.</p>
+          <p>&copy; {new Date().getFullYear()} 英语学习助手. 保留所有权利.</p>
         </div>
       </div>
     </footer>
