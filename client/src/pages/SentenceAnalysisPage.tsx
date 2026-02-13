@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { Textarea } from '@/components/ui/Textarea';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/toast-context';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { AlignLeft, Copy, Check, X } from 'lucide-react';
@@ -25,12 +25,12 @@ const componentColorMap: Record<string, string> = {
 
 // Color legend for component types
 const legend = [
-  { label: '主语', cls: 'bg-blue-100 dark:bg-blue-900/60' },
-  { label: '谓语', cls: 'bg-red-100 dark:bg-red-900/60' },
-  { label: '宾语', cls: 'bg-green-100 dark:bg-green-900/60' },
-  { label: '定语', cls: 'bg-yellow-100 dark:bg-yellow-900/60' },
-  { label: '状语', cls: 'bg-purple-100 dark:bg-purple-900/60' },
-  { label: '补语', cls: 'bg-pink-100 dark:bg-pink-900/60' },
+  { label: '主语', color: '#3b82f6' },
+  { label: '谓语', color: '#ef4444' },
+  { label: '宾语', color: '#10b981' },
+  { label: '定语', color: '#f59e0b' },
+  { label: '状语', color: '#8b5cf6' },
+  { label: '补语', color: '#ec4899' },
 ];
 
 function getComponentClass(type: string) {
@@ -147,35 +147,58 @@ export function SentenceAnalysisPage() {
 
           {/* Components with legend */}
           {result.components && result.components.length > 0 && (
-            <Card>
-              <h2 className="text-lg font-bold mb-2">句子成分</h2>
-              {/* Legend */}
-              <div className="flex flex-wrap gap-2 mb-4 pb-3 border-b border-border/50">
-                {legend.map(l => (
-                  <span key={l.label} className={cn('text-xs px-2 py-0.5 rounded', l.cls)}>{l.label}</span>
-                ))}
+            <Card className="overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold">句子成分</h2>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  {legend.map(l => (
+                    <span key={l.label} className="flex items-center gap-1.5">
+                      <span className="legend-dot" style={{ backgroundColor: l.color }} />
+                      {l.label}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+
+              <div className="flex flex-wrap gap-2.5">
                 {result.components.map((comp, i) => (
-                  <span
+                  <button
                     key={i}
-                    className={cn('component-tag', getComponentClass(comp.type))}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setActiveTooltip(activeTooltip === i ? null : i)}
-                    onKeyDown={e => e.key === 'Enter' && setActiveTooltip(activeTooltip === i ? null : i)}
-                  >
-                    <span className="component-label">{comp.type}</span>
-                    {comp.text}
-                    {activeTooltip === i && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-card border border-border rounded-lg shadow-xl text-sm max-w-xs z-20 animate-fade-in-up">
-                        <p className="font-semibold text-primary-600 dark:text-primary-400 mb-1">{comp.type}</p>
-                        <p className="text-muted-foreground">{comp.explanation}</p>
-                      </div>
+                    className={cn(
+                      'component-chip',
+                      getComponentClass(comp.type),
+                      activeTooltip === i && 'component-chip-active',
                     )}
-                  </span>
+                    onClick={() => setActiveTooltip(activeTooltip === i ? null : i)}
+                  >
+                    <span className="component-chip-type">{comp.type}</span>
+                    <span className="component-chip-text">{comp.text}</span>
+                  </button>
                 ))}
               </div>
+
+              {activeTooltip !== null && result.components[activeTooltip] && (() => {
+                const comp = result.components[activeTooltip];
+                return (
+                  <div
+                    className={cn('component-detail-panel mt-5 bg-muted/60 p-4', getComponentClass(comp.type))}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold tracking-wide opacity-60 mb-1">{comp.type}</p>
+                        <p className="font-serif text-base italic text-foreground/90 mb-2">"{comp.text}"</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{comp.explanation}</p>
+                      </div>
+                      <button
+                        onClick={() => setActiveTooltip(null)}
+                        className="p-1.5 rounded-full hover:bg-background/80 transition-colors text-muted-foreground shrink-0"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </Card>
           )}
 

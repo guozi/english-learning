@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTheme } from '@/hooks/use-theme';
 import { Sun, Moon, GraduationCap, Menu, X, Layers, AlignLeft, BookOpen, ListChecks, Trophy, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -13,17 +13,17 @@ const navLinks = [
   { to: '/achievements', label: '学习成就', icon: Trophy },
 ];
 
-export function Navbar() {
-  const { theme, toggle } = useTheme();
-  const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+interface NavbarContentProps {
+  pathname: string;
+  theme: 'light' | 'dark';
+  onToggleTheme: () => void;
+  onOpenSettings: () => void;
+}
 
-  // Close mobile menu on route change
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+function NavbarContent({ pathname, theme, onToggleTheme, onOpenSettings }: NavbarContentProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <>
     <nav className="bg-card/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
@@ -37,7 +37,7 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             {/* Theme toggle */}
             <button
-              onClick={toggle}
+              onClick={onToggleTheme}
               className="p-2 rounded-full hover:bg-muted transition-all duration-300"
               aria-label={theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'}
             >
@@ -56,7 +56,7 @@ export function Navbar() {
             {/* Desktop nav */}
             <div className="hidden md:flex items-center gap-1 ml-2">
               {navLinks.map(link => {
-                const active = location.pathname === link.to;
+                const active = pathname === link.to;
                 return (
                   <Link
                     key={link.to}
@@ -80,7 +80,7 @@ export function Navbar() {
             {/* Mobile menu button */}
             <button
               className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
-              onClick={() => setMobileOpen(!mobileOpen)}
+              onClick={() => setMobileOpen(prev => !prev)}
               aria-label="菜单"
               aria-expanded={mobileOpen}
             >
@@ -98,7 +98,7 @@ export function Navbar() {
 
             {/* Settings */}
             <button
-              onClick={() => setSettingsOpen(true)}
+              onClick={onOpenSettings}
               className="p-2 rounded-full hover:bg-muted transition-all duration-300"
               aria-label="AI 设置"
             >
@@ -114,12 +114,13 @@ export function Navbar() {
         )}>
           <div className="flex flex-col gap-1">
             {navLinks.map(link => {
-              const active = location.pathname === link.to;
+              const active = pathname === link.to;
               const Icon = link.icon;
               return (
                 <Link
                   key={link.to}
                   to={link.to}
+                  onClick={() => setMobileOpen(false)}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                     active
@@ -136,7 +137,24 @@ export function Navbar() {
         </div>
       </div>
     </nav>
-    <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
-  </>
+  );
+}
+
+export function Navbar() {
+  const { theme, toggle } = useTheme();
+  const location = useLocation();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  return (
+    <>
+      <NavbarContent
+        key={location.pathname}
+        pathname={location.pathname}
+        theme={theme}
+        onToggleTheme={toggle}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </>
   );
 }

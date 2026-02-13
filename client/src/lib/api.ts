@@ -15,15 +15,20 @@ function getAIConfig(): AIConfig | null {
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  let finalOptions = { ...options };
+  const finalOptions = { ...options };
 
   // Auto-inject aiConfig into POST body
-  if (finalOptions.method === 'POST' && finalOptions.body) {
+  if (finalOptions.method === 'POST' && typeof finalOptions.body === 'string') {
     const aiConfig = getAIConfig();
     if (aiConfig) {
-      const body = JSON.parse(finalOptions.body as string);
-      body.aiConfig = aiConfig;
-      finalOptions.body = JSON.stringify(body);
+      try {
+        const body = JSON.parse(finalOptions.body) as Record<string, unknown>;
+        if (!('aiConfig' in body)) {
+          finalOptions.body = JSON.stringify({ ...body, aiConfig });
+        }
+      } catch {
+        // Ignore non-JSON request bodies
+      }
     }
   }
 

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/toast-context';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -45,6 +45,10 @@ export function QuizPage() {
       const result = type === 'reading'
         ? await api.quiz.readingQuestions(currentReading.english) as QuizQuestion[]
         : await api.quiz.vocabularyQuestions(currentReading.vocabulary) as QuizQuestion[];
+      if (!Array.isArray(result) || result.length === 0) {
+        toast('未生成有效题目，请重试或更换阅读内容', 'warning');
+        return;
+      }
       setQuestions(result);
       setUserAnswers(new Array(result.length).fill(null));
       setQIndex(0);
@@ -58,13 +62,15 @@ export function QuizPage() {
     }
   };
 
-  const selectOption = (optionIdx: number) => {
+  const selectOption = useCallback((optionIdx: number) => {
     if (answered) return;
-    const newAnswers = [...userAnswers];
-    newAnswers[qIndex] = optionIdx;
-    setUserAnswers(newAnswers);
+    setUserAnswers(prev => {
+      const next = [...prev];
+      next[qIndex] = optionIdx;
+      return next;
+    });
     setAnswered(true);
-  };
+  }, [answered, qIndex]);
 
   const nextQuestion = useCallback(() => {
     if (!answered) return;
@@ -99,7 +105,7 @@ export function QuizPage() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [phase, answered, qIndex, questions, nextQuestion]);
+  }, [phase, answered, qIndex, questions, selectOption, nextQuestion]);
 
   const correctCount = userAnswers.filter((a, i) => a === questions[i]?.correctIndex).length;
   const wrongCount = questions.length - correctCount;

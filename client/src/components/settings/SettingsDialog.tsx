@@ -4,7 +4,7 @@ import { X, Eye, EyeOff, Zap, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/toast-context';
 import { AI_PROVIDERS, STORAGE_KEY } from '@/lib/ai-providers';
 import { api } from '@/lib/api';
 import type { AIConfig } from '@/types';
@@ -61,8 +61,8 @@ export function SettingsDialog({ open, onClose }: Props) {
     try {
       await api.ai.test({ apiKey, baseUrl, model });
       toast('连接成功', 'success');
-    } catch (e: any) {
-      toast(e.message || '连接失败', 'error');
+    } catch (e: unknown) {
+      toast(e instanceof Error ? e.message : '连接失败', 'error');
     } finally {
       setTesting(false);
     }

@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { useTts } from '@/hooks/use-tts';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/toast-context';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, Volume2, RotateCcw, Layers } from 'lucide-react';

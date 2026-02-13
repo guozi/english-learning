@@ -18,16 +18,82 @@ interface AIConfig {
   model: string;
 }
 
+function isPrivateOrLocalhost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+
+  if (host === 'localhost' || host === '::1' || host.endsWith('.local')) {
+    return true;
+  }
+
+  // IPv4 private/loopback/link-local ranges
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+    const [a, b] = host.split('.').map(Number);
+    if (a === 10 || a === 127 || a === 0) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+  }
+
+  // IPv6 local ranges
+  if (host.startsWith('fc') || host.startsWith('fd') || host.startsWith('fe80')) {
+    return true;
+  }
+
+  return false;
+}
+
+function validateBaseUrl(baseUrl: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(baseUrl);
+  } catch {
+    throw new Error('Base URL 格式无效');
+  }
+
+  if (parsed.username || parsed.password) {
+    throw new Error('Base URL 不允许包含认证信息');
+  }
+
+  const protocol = parsed.protocol.toLowerCase();
+  if (protocol !== 'https:' && protocol !== 'http:') {
+    throw new Error('Base URL 仅支持 HTTP/HTTPS');
+  }
+
+  const isProd = process.env.NODE_ENV === 'production';
+  if (isProd && protocol !== 'https:') {
+    throw new Error('生产环境仅允许 HTTPS Base URL');
+  }
+
+  const host = parsed.hostname.toLowerCase();
+  if (isProd && isPrivateOrLocalhost(host)) {
+    throw new Error('生产环境不允许访问本地或内网地址');
+  }
+
+  const allowedHosts = (process.env.ALLOWED_AI_HOSTS || '')
+    .split(',')
+    .map(v => v.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (allowedHosts.length > 0 && !allowedHosts.includes(host)) {
+    throw new Error('当前 Base URL 不在允许列表中');
+  }
+}
+
+function buildCompletionsEndpoint(baseUrl: string): string {
+  return `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
+}
+
 function validateAIConfig(aiConfig?: AIConfig): asserts aiConfig is AIConfig {
   if (!aiConfig?.apiKey || !aiConfig?.baseUrl || !aiConfig?.model) {
     throw new Error('请先在页面设置中配置 AI 服务（API Key、Base URL、Model）');
   }
+  validateBaseUrl(aiConfig.baseUrl);
 }
 
 async function sendRequest(prompt: string, options: { temperature?: number; maxTokens?: number } = {}, aiConfig?: AIConfig): Promise<string> {
   validateAIConfig(aiConfig);
 
-  const res = await fetch(`${aiConfig.baseUrl}/chat/completions`, {
+  const res = await fetch(buildCompletionsEndpoint(aiConfig.baseUrl), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -93,7 +159,7 @@ export async function generateLearningReport(reportType: string, learningData: u
 export async function testConnection(aiConfig?: AIConfig): Promise<{ success: boolean; model: string }> {
   validateAIConfig(aiConfig);
 
-  const res = await fetch(`${aiConfig.baseUrl}/chat/completions`, {
+  const res = await fetch(buildCompletionsEndpoint(aiConfig.baseUrl), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
