@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
-import { Badge } from '@/components/ui/Badge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -11,7 +10,7 @@ import { useTts } from '@/hooks/use-tts';
 import { useToast } from '@/components/ui/toast-context';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Volume2, RotateCcw, Layers } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Volume2, RotateCcw, Layers, BookOpen, Lightbulb, MessageSquareQuote } from 'lucide-react';
 import { AIConfigBanner } from '@/components/settings/AIConfigBanner';
 import type { Word } from '@/types';
 
@@ -28,6 +27,7 @@ export function FlashcardsPage() {
   // Swipe handling
   const touchStart = useRef({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
+  const wordListRef = useRef<HTMLDivElement>(null);
 
   const handleExtract = async () => {
     if (!inputText.trim()) return;
@@ -86,17 +86,28 @@ export function FlashcardsPage() {
     }
   };
 
+  // Auto-scroll word list to keep current word visible
+  useEffect(() => {
+    const container = wordListRef.current;
+    if (!container) return;
+    const activeEl = container.children[currentIndex] as HTMLElement | undefined;
+    if (activeEl) {
+      const left = activeEl.offsetLeft - container.offsetWidth / 2 + activeEl.offsetWidth / 2;
+      container.scrollTo({ left, behavior: 'smooth' });
+    }
+  }, [currentIndex]);
+
   const word = words[currentIndex];
+  const progress = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0;
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in-up">
-      <h1 className="text-3xl font-bold mb-6 text-primary-700 dark:text-primary-400">闪卡学习</h1>
       <AIConfigBanner />
 
       {/* Input area */}
-      <Card className="mb-8">
+      <Card className="mb-10">
         <Textarea
-          rows={5}
+          rows={4}
           placeholder="在此粘贴英文文本，AI 将自动提取值得学习的单词..."
           value={inputText}
           onChange={e => setInputText(e.target.value)}
@@ -132,125 +143,138 @@ export function FlashcardsPage() {
 
       {/* Flashcard viewer */}
       {words.length > 0 && !loading && word && (
-        <>
-          {/* 3D Flashcard */}
-          <div
-            ref={cardRef}
-            className="flashcard-container swipe-container mx-auto mb-6 cursor-pointer"
-            style={{ maxWidth: 480 }}
-            onClick={() => setFlipped(f => !f)}
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-            role="button"
-            tabIndex={0}
-            aria-label={flipped ? '点击翻转到正面' : '点击翻转查看详情'}
-          >
-            <div className={cn('flashcard-inner', flipped && 'flipped')} style={{ minHeight: 380 }}>
-              {/* Front */}
-              <div className="flashcard-front bg-card border border-border/50 shadow-lg p-8 flex flex-col items-center justify-center">
-                <p className="text-3xl md:text-4xl font-bold text-primary-700 dark:text-primary-400 mb-3 text-center">
-                  {word.word}
-                </p>
-                <p className="text-lg text-muted-foreground mb-6">{word.phonetic}</p>
-                <button
-                  className="p-2 rounded-full hover:bg-muted transition-colors mb-4"
-                  onClick={e => { e.stopPropagation(); speak(word.word); }}
-                  aria-label="朗读单词"
+        <div className="flex flex-col items-center">
+          {/* Card + side arrows wrapper */}
+          <div className="relative w-full flex justify-center mb-6" style={{ maxWidth: 520 }}>
+            {/* Left arrow */}
+            <button
+              className="flashcard-nav-arrow left"
+              onClick={() => goTo(-1)}
+              disabled={currentIndex === 0}
+              aria-label="上一张"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+
+            {/* Premium gradient border */}
+            <div className="flashcard-premium w-full">
+              <div className="flashcard-premium-inner">
+                <div
+                  ref={cardRef}
+                  className="flashcard-container swipe-container"
+                  onClick={() => setFlipped(f => !f)}
+                  onTouchStart={onTouchStart}
+                  onTouchEnd={onTouchEnd}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={flipped ? '点击翻转到正面' : '点击翻转查看详情'}
                 >
-                  <Volume2 className="h-5 w-5 text-primary-500" />
-                </button>
-                <p className="text-xs text-muted-foreground/60">点击翻转 · 方向键切换 · 空格翻转</p>
-              </div>
+                  <div className={cn('flashcard-inner', flipped && 'flipped')} style={{ minHeight: 400 }}>
+                    {/* Front */}
+                    <div className="flashcard-front bg-card p-8 flex flex-col items-center justify-center gap-2">
+                      <p className="text-4xl md:text-5xl font-bold font-serif text-primary-700 dark:text-primary-400 text-center tracking-tight">
+                        {word.word}
+                      </p>
+                      <div className="w-12 h-0.5 bg-primary-300/50 dark:bg-primary-600/50 rounded-full my-2" />
+                      <p className="text-lg text-muted-foreground/80 font-light tracking-wide">{word.phonetic}</p>
+                      <button
+                        className="mt-3 p-3 rounded-full hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                        onClick={e => { e.stopPropagation(); speak(word.word); }}
+                        aria-label="朗读单词"
+                      >
+                        <Volume2 className="h-5 w-5 text-primary-400" />
+                      </button>
+                      <p className="mt-auto text-xs text-muted-foreground/40 tracking-wider">
+                        点击翻转 · ← → 切换 · 空格翻转
+                      </p>
+                    </div>
 
-              {/* Back */}
-              <div className="flashcard-back bg-card border border-border/50 shadow-lg p-6 overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-xl font-bold text-primary-700 dark:text-primary-400">{word.word}</p>
-                    <p className="text-sm text-muted-foreground">{word.phonetic}</p>
-                  </div>
-                  <button
-                    className="p-2 rounded-full hover:bg-muted transition-colors"
-                    onClick={e => { e.stopPropagation(); speak(word.example || word.word); }}
-                    aria-label="朗读例句"
-                  >
-                    <Volume2 className="h-4 w-4 text-primary-500" />
-                  </button>
-                </div>
-                <div className="space-y-4 text-sm">
-                  <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wide mb-1">释义</p>
-                    <p className="font-medium">{word.definition}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">词源</p>
-                    <p className="text-muted-foreground">{word.etymology}</p>
-                  </div>
-                  <div className="border-t border-border pt-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">例句</p>
-                    <p className="italic leading-relaxed">{word.example}</p>
-                    <p className="text-muted-foreground mt-1">{word.exampleTranslation}</p>
+                    {/* Back */}
+                    <div className="flashcard-back bg-card p-6 overflow-y-auto">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-2xl font-bold font-serif text-primary-700 dark:text-primary-400 truncate">{word.word}</p>
+                          <p className="text-sm text-muted-foreground/70 mt-0.5">{word.phonetic}</p>
+                        </div>
+                        <button
+                          className="shrink-0 p-2 rounded-full hover:bg-muted transition-colors"
+                          onClick={e => { e.stopPropagation(); speak(word.example || word.word); }}
+                          aria-label="朗读例句"
+                        >
+                          <Volume2 className="h-4 w-4 text-primary-500" />
+                        </button>
+                      </div>
+                      <div className="space-y-3 text-sm">
+                        <div className="flashcard-section" style={{ '--section-color': '#0ea5e9' } as React.CSSProperties}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <BookOpen className="h-3.5 w-3.5 text-primary-500" />
+                            <span className="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wide">释义</span>
+                          </div>
+                          <p className="font-medium leading-relaxed">{word.definition}</p>
+                        </div>
+                        <div className="flashcard-section" style={{ '--section-color': '#8b5cf6' } as React.CSSProperties}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Lightbulb className="h-3.5 w-3.5 text-violet-500" />
+                            <span className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide">词源</span>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">{word.etymology}</p>
+                        </div>
+                        <div className="flashcard-section" style={{ '--section-color': '#10b981' } as React.CSSProperties}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <MessageSquareQuote className="h-3.5 w-3.5 text-emerald-500" />
+                            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">例句</span>
+                          </div>
+                          <p className="italic leading-relaxed">{word.example}</p>
+                          <p className="text-muted-foreground mt-1.5 text-xs">{word.exampleTranslation}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Right arrow */}
+            <button
+              className="flashcard-nav-arrow right"
+              onClick={() => goTo(1)}
+              disabled={currentIndex === words.length - 1}
+              aria-label="下一张"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-center gap-6 mb-8">
-            <Button variant="outline" size="sm" onClick={() => goTo(-1)} disabled={currentIndex === 0}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            {/* Progress dots */}
-            <div className="flex items-center gap-1.5">
-              {words.length <= 15 ? (
-                words.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => { setCurrentIndex(i); setFlipped(false); }}
-                    className={cn(
-                      'rounded-full transition-all duration-200',
-                      i === currentIndex
-                        ? 'w-6 h-2 bg-primary-500'
-                        : 'w-2 h-2 bg-border hover:bg-primary-300',
-                    )}
-                    aria-label={`第 ${i + 1} 张卡片`}
-                  />
-                ))
-              ) : (
-                <span className="text-sm font-medium text-muted-foreground tabular-nums">
-                  {currentIndex + 1} / {words.length}
-                </span>
-              )}
+          {/* Progress bar + counter */}
+          <div className="w-full mb-8" style={{ maxWidth: 520 }}>
+            <div className="flashcard-progress-track">
+              <div className="flashcard-progress-fill" style={{ width: `${progress}%` }} />
             </div>
-            <Button variant="outline" size="sm" onClick={() => goTo(1)} disabled={currentIndex === words.length - 1}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <p className="text-center text-xs text-muted-foreground/60 mt-2 tabular-nums">
+              {currentIndex + 1} / {words.length}
+            </p>
           </div>
 
-          {/* Word list */}
-          <Card>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold">已提取 {words.length} 个单词</h3>
-              <span className="text-xs text-muted-foreground">点击跳转</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
+          {/* Horizontal word list */}
+          <div className="w-full" style={{ maxWidth: 520 }}>
+            <div ref={wordListRef} className="flashcard-wordlist">
               {words.map((w, i) => (
-                <Badge
+                <button
                   key={w.word}
-                  variant={i === currentIndex ? 'primary' : 'default'}
-                  className={cn(
-                    'cursor-pointer transition-all duration-200',
-                    i === currentIndex && 'ring-2 ring-primary-500/30 scale-105',
-                  )}
                   onClick={() => { setCurrentIndex(i); setFlipped(false); }}
+                  className={cn(
+                    'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap',
+                    i === currentIndex
+                      ? 'bg-primary-500 text-white shadow-md shadow-primary-500/25 scale-105'
+                      : 'bg-muted text-muted-foreground hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:text-primary-700 dark:hover:text-primary-300',
+                  )}
                 >
                   {w.word}
-                </Badge>
+                </button>
               ))}
             </div>
-          </Card>
-        </>
+          </div>
+        </div>
       )}
     </div>
   );
