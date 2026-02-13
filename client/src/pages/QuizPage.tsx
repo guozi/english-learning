@@ -120,7 +120,7 @@ export function QuizPage() {
   const scoreEmoji = score >= 90 ? '🎉' : score >= 70 ? '👍' : score >= 50 ? '💪' : '📚';
 
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in-up">
+    <div className="max-w-4xl mx-auto animate-fade-in-up">
       <AIConfigBanner />
 
       {/* Selection phase */}
