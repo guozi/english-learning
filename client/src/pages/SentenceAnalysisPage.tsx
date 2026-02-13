@@ -5,9 +5,10 @@ import { Textarea } from '@/components/ui/Textarea';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/toast-context';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { AlignLeft, Copy, Check, X } from 'lucide-react';
+import { AlignLeft, Copy, Check, X, GitMerge, Clock, Quote, Sparkles, Type, Braces, History } from 'lucide-react';
 import { AIConfigBanner } from '@/components/settings/AIConfigBanner';
 import type { SentenceAnalysis } from '@/types';
 
@@ -40,12 +41,19 @@ function getComponentClass(type: string) {
   return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
 }
 
+interface AnalysisRecord {
+  sentence: string;
+  result: SentenceAnalysis;
+  timestamp: number;
+}
+
 export function SentenceAnalysisPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SentenceAnalysis | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [history, setHistory] = useLocalStorage<AnalysisRecord[]>('sentenceHistory', []);
   const { toast } = useToast();
 
   const analyze = async () => {
@@ -56,6 +64,10 @@ export function SentenceAnalysisPage() {
     try {
       const data = await api.sentence.analyze(input) as SentenceAnalysis;
       setResult(data);
+      setHistory(prev => [
+        { sentence: input.trim(), result: data, timestamp: Date.now() },
+        ...prev.filter(h => h.sentence !== input.trim()),
+      ].slice(0, 3));
       toast('分析完成', 'success');
     } catch (err) {
       toast(`分析失败: ${(err as Error).message}`, 'error');
@@ -73,12 +85,17 @@ export function SentenceAnalysisPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const loadRecord = (record: AnalysisRecord) => {
+    setInput(record.sentence);
+    setResult(record.result);
+    setActiveTooltip(null);
+  };
+
   return (
     <div className="max-w-4xl mx-auto animate-fade-in-up">
-      <h1 className="text-3xl font-bold mb-6 text-primary-700 dark:text-primary-400">句子分析</h1>
       <AIConfigBanner />
 
-      <Card className="mb-8">
+      <Card className="mb-10">
         <div className="relative">
           <Textarea
             rows={5}
@@ -102,12 +119,40 @@ export function SentenceAnalysisPage() {
           </Button>
           <div className="h-4 w-px bg-border mx-1" />
           {examples.map((ex, i) => (
-            <Button key={i} variant="ghost" size="sm" onClick={() => setInput(ex.text)}>
+            <button
+              key={i}
+              onClick={() => setInput(ex.text)}
+              className="px-3 py-1 text-xs font-medium rounded-full border border-border text-muted-foreground hover:border-primary-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            >
               {ex.label}
-            </Button>
+            </button>
           ))}
         </div>
       </Card>
+
+      {/* Recent analyses */}
+      {history.length > 0 && !loading && (
+        <div className="flex flex-wrap gap-2 mb-8">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
+            <History className="h-3.5 w-3.5" /> 最近分析
+          </span>
+          {history.map((h, i) => (
+            <button
+              key={i}
+              onClick={() => loadRecord(h)}
+              className={cn(
+                'px-3 py-1.5 text-xs rounded-full border transition-all max-w-[260px] truncate',
+                h.sentence === input
+                  ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                  : 'border-border text-muted-foreground hover:border-primary-300 hover:text-primary-600 dark:hover:text-primary-400',
+              )}
+              title={h.sentence}
+            >
+              {h.sentence}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading && <LoadingSpinner text="AI 正在分析句子结构..." />}
 
@@ -122,23 +167,36 @@ export function SentenceAnalysisPage() {
       {result && (
         <div className="space-y-6">
           {/* Structure */}
-          <Card>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold">句子结构</h2>
+          <Card className="analysis-highlight-card pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="analysis-card-header !mb-0">
+                <Braces className="h-5 w-5 text-primary-500" />
+                <h2 className="text-lg font-bold">句子结构</h2>
+              </div>
               <Button variant="ghost" size="sm" onClick={copyResult}>
                 {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                 {copied ? '已复制' : '复制'}
               </Button>
             </div>
-            <p className="text-lg leading-relaxed font-serif bg-muted/50 rounded-lg p-4 border border-border/30">{input}</p>
+            <div className="relative bg-muted/50 rounded-lg p-5 border border-border/30">
+              <span className="absolute top-2 left-3 text-3xl leading-none text-primary-300/50 dark:text-primary-600/40 font-serif select-none">"</span>
+              <p className="text-xl leading-relaxed font-serif pl-5 pr-5">{input}</p>
+              <span className="absolute bottom-1 right-3 text-3xl leading-none text-primary-300/50 dark:text-primary-600/40 font-serif select-none">"</span>
+            </div>
             {result.structure && (
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wide mb-1">句子类型</p>
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="analysis-item" style={{ '--item-color': '#3b82f6' } as React.CSSProperties}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Type className="h-3.5 w-3.5 text-blue-500" />
+                    <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">句子类型</p>
+                  </div>
                   <p className="font-medium">{result.structure.type}</p>
                 </div>
-                <div className="bg-muted rounded-lg p-3">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">结构解释</p>
+                <div className="analysis-item" style={{ '--item-color': '#8b5cf6' } as React.CSSProperties}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <AlignLeft className="h-3.5 w-3.5 text-purple-500" />
+                    <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide">结构解释</p>
+                  </div>
                   <p>{result.structure.explanation}</p>
                 </div>
               </div>
@@ -205,14 +263,17 @@ export function SentenceAnalysisPage() {
           {/* Clauses & Tense */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
-              <h2 className="text-lg font-bold mb-3">从句分析</h2>
+              <div className="analysis-card-header">
+                <GitMerge className="h-5 w-5 text-blue-500" />
+                <h2 className="text-lg font-bold">从句分析</h2>
+              </div>
               {result.clauses && result.clauses.length > 0 ? (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {result.clauses.map((c, i) => (
-                    <li key={i} className="p-3 bg-muted rounded-lg text-sm animate-slide-in" style={{ animationDelay: `${i * 80}ms` }}>
+                    <li key={i} className="analysis-item text-sm animate-slide-in" style={{ '--item-color': '#3b82f6', animationDelay: `${i * 80}ms` } as React.CSSProperties}>
                       <p className="font-semibold">{c.type}</p>
                       <p className="text-muted-foreground text-xs mt-0.5">功能: {c.function}</p>
-                      <p className="italic mt-1.5 text-foreground/80">"{c.text}"</p>
+                      <p className="italic mt-1.5 text-foreground/80 font-serif">"{c.text}"</p>
                     </li>
                   ))}
                 </ul>
@@ -222,11 +283,14 @@ export function SentenceAnalysisPage() {
             </Card>
 
             <Card>
-              <h2 className="text-lg font-bold mb-3">时态分析</h2>
+              <div className="analysis-card-header">
+                <Clock className="h-5 w-5 text-amber-500" />
+                <h2 className="text-lg font-bold">时态分析</h2>
+              </div>
               {result.tense && result.tense.length > 0 ? (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {result.tense.map((t, i) => (
-                    <li key={i} className="p-3 bg-muted rounded-lg text-sm animate-slide-in" style={{ animationDelay: `${i * 80}ms` }}>
+                    <li key={i} className="analysis-item text-sm animate-slide-in" style={{ '--item-color': '#f59e0b', animationDelay: `${i * 80}ms` } as React.CSSProperties}>
                       <p className="font-semibold">{t.name}</p>
                       <p className="mt-1 text-muted-foreground">{t.explanation}</p>
                     </li>
@@ -241,15 +305,18 @@ export function SentenceAnalysisPage() {
           {/* Phrases & Grammar */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
-              <h2 className="text-lg font-bold mb-3">重要短语</h2>
+              <div className="analysis-card-header">
+                <Quote className="h-5 w-5 text-emerald-500" />
+                <h2 className="text-lg font-bold">重要短语</h2>
+              </div>
               {result.phrases && result.phrases.length > 0 ? (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {result.phrases.map((p, i) => (
-                    <li key={i} className="p-3 bg-muted rounded-lg text-sm">
+                    <li key={i} className="analysis-item text-sm" style={{ '--item-color': '#10b981' } as React.CSSProperties}>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 px-1.5 py-0.5 rounded">{p.type}</span>
+                        <span className="text-xs font-medium bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full">{p.type}</span>
                       </div>
-                      <p className="italic text-foreground/80">"{p.text}"</p>
+                      <p className="italic text-foreground/80 font-serif">"{p.text}"</p>
                       <p className="mt-1 text-muted-foreground">{p.explanation}</p>
                     </li>
                   ))}
@@ -260,11 +327,14 @@ export function SentenceAnalysisPage() {
             </Card>
 
             <Card>
-              <h2 className="text-lg font-bold mb-3">语法要点</h2>
+              <div className="analysis-card-header">
+                <Sparkles className="h-5 w-5 text-indigo-500" />
+                <h2 className="text-lg font-bold">语法要点</h2>
+              </div>
               {result.grammarPoints && result.grammarPoints.length > 0 ? (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {result.grammarPoints.map((g, i) => (
-                    <li key={i} className="p-3 bg-muted rounded-lg text-sm">
+                    <li key={i} className="analysis-item text-sm" style={{ '--item-color': '#6366f1' } as React.CSSProperties}>
                       <p className="font-semibold">{g.point}</p>
                       <p className="mt-1 text-muted-foreground">{g.explanation}</p>
                     </li>

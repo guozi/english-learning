@@ -121,7 +121,6 @@ export function QuizPage() {
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in-up">
-      <h1 className="text-3xl font-bold mb-6 text-primary-700 dark:text-primary-400">理解测试</h1>
       <AIConfigBanner />
 
       {/* Selection phase */}
@@ -194,15 +193,15 @@ export function QuizPage() {
                 }
               </span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+            <div className="flashcard-progress-track">
               <div
-                className="bg-primary-500 h-full rounded-full transition-all duration-500 ease-out"
+                className="flashcard-progress-fill"
                 style={{ width: `${((qIndex + 1) / questions.length) * 100}%` }}
               />
             </div>
           </div>
 
-          <Card className="mb-4">
+          <Card className="analysis-highlight-card pt-6 mb-4">
             <p className="font-semibold text-lg mb-5">{q.question}</p>
             <div className="space-y-3">
               {q.options.map((opt, i) => {
@@ -240,7 +239,7 @@ export function QuizPage() {
               })}
             </div>
             {answered && q.explanation && (
-              <div className="mt-4 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-sm border border-primary-200 dark:border-primary-800">
+              <div className="analysis-item mt-4 text-sm" style={{ '--item-color': '#0ea5e9' } as React.CSSProperties}>
                 <span className="font-semibold text-primary-700 dark:text-primary-300">解释：</span>
                 <span className="text-primary-800 dark:text-primary-200">{q.explanation}</span>
               </div>
@@ -262,7 +261,7 @@ export function QuizPage() {
       {/* Result phase */}
       {phase === 'result' && (
         <div className="animate-fade-in-up">
-          <Card className="text-center mb-6">
+          <Card className="analysis-highlight-card pt-6 text-center mb-6">
             <p className="text-4xl mb-2">{scoreEmoji}</p>
             <h2 className="text-2xl font-bold mb-1">
               {testType === 'reading' ? '阅读理解测试' : '词汇测试'} 完成
@@ -280,14 +279,14 @@ export function QuizPage() {
             </div>
 
             {score < 80 && (
-              <div className="bg-muted rounded-lg p-4 mb-6 text-left text-sm">
-                <p className="font-semibold mb-2 flex items-center gap-1.5">
-                  <AlertTriangle className="h-4 w-4 text-yellow-500" /> 改进建议
+              <div className="mb-6 text-left text-sm">
+                <p className="analysis-card-header !mb-3 justify-center">
+                  <AlertTriangle className="h-4 w-4 text-yellow-500" /> <span className="font-semibold">改进建议</span>
                 </p>
-                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                  <li>加强阅读理解能力，注重把握文章主旨</li>
-                  <li>扩大词汇量，特别是关键学术词汇</li>
-                  <li>练习识别文章的逻辑结构和论证方式</li>
+                <ul className="space-y-2">
+                  <li className="analysis-item" style={{ '--item-color': '#f59e0b' } as React.CSSProperties}>加强阅读理解能力，注重把握文章主旨</li>
+                  <li className="analysis-item" style={{ '--item-color': '#f59e0b' } as React.CSSProperties}>扩大词汇量，特别是关键学术词汇</li>
+                  <li className="analysis-item" style={{ '--item-color': '#f59e0b' } as React.CSSProperties}>练习识别文章的逻辑结构和论证方式</li>
                 </ul>
               </div>
             )}
@@ -311,7 +310,10 @@ export function QuizPage() {
           {/* Error review */}
           {showReview && wrongQuestions.length > 0 && (
             <div className="space-y-4">
-              <h3 className="font-bold text-lg">错题回顾</h3>
+              <div className="analysis-card-header">
+                <XCircle className="h-5 w-5 text-red-500" />
+                <h3 className="font-bold text-lg">错题回顾</h3>
+              </div>
               {wrongQuestions.map((wq, i) => (
                 <Card key={i} className="border-red-200 dark:border-red-900/50">
                   <p className="font-semibold mb-3">

@@ -12,7 +12,8 @@ import { useTts } from '@/hooks/use-tts';
 import { api } from '@/lib/api';
 import {
   Volume2, Bookmark, BookmarkCheck, FileQuestion,
-  ArrowLeftRight, BookOpen, X, Sparkles,
+  ArrowLeftRight, BookOpen, X, Sparkles, Languages,
+  ChevronDown, Trash2,
 } from 'lucide-react';
 import { AIConfigBanner } from '@/components/settings/AIConfigBanner';
 import type { ReadingContent, VocabItem } from '@/types';
@@ -28,6 +29,7 @@ export function ReadingPage() {
   const [viewMode, setViewMode] = useState<'alternate' | 'parallel'>('alternate');
   const [, setHistory] = useLocalStorage<ReadingContent[]>('readingHistory', []);
   const [favorites, setFavorites] = useLocalStorage<ReadingContent[]>('readingFavorites', []);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   const isFavorited = reading ? favorites.some(f => f.english === reading.english) : false;
 
@@ -63,15 +65,24 @@ export function ReadingPage() {
     navigate('/quiz', { state: { currentReading: reading } });
   };
 
+  const loadFavorite = (fav: ReadingContent) => {
+    setReading(fav);
+    setShowFavorites(false);
+  };
+
+  const removeFavorite = (fav: ReadingContent) => {
+    setFavorites(prev => prev.filter(f => f.english !== fav.english));
+    toast('已移除收藏', 'info');
+  };
+
   const enParagraphs = reading?.english.split('\n').filter(p => p.trim()) || [];
   const zhParagraphs = reading?.chinese.split('\n').filter(p => p.trim()) || [];
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in-up">
-      <h1 className="text-3xl font-bold mb-6 text-primary-700 dark:text-primary-400">双语阅读</h1>
       <AIConfigBanner />
 
-      <Card className="mb-6">
+      <Card className="mb-10">
         <div className="relative">
           <Textarea
             rows={5}
@@ -102,6 +113,52 @@ export function ReadingPage() {
           </span>
         </div>
       </Card>
+
+      {/* Favorites panel */}
+      {favorites.length > 0 && (
+        <div className="mb-8">
+          <button
+            onClick={() => setShowFavorites(v => !v)}
+            className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg bg-card border border-border/50 hover:border-primary-300 transition-colors group"
+          >
+            <BookmarkCheck className="h-4 w-4 text-amber-500" />
+            <span className="text-sm font-medium">我的收藏</span>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{favorites.length}</span>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground ml-auto transition-transform ${showFavorites ? 'rotate-180' : ''}`} />
+          </button>
+          {showFavorites && (
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 animate-fade-in-up">
+              {favorites.map((fav, i) => (
+                <div
+                  key={i}
+                  className="analysis-item group cursor-pointer"
+                  style={{ '--item-color': '#f59e0b' } as React.CSSProperties}
+                  onClick={() => loadFavorite(fav)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate">{fav.title || '无标题'}</p>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-serif italic">
+                        {fav.english.slice(0, 120)}{fav.english.length > 120 ? '...' : ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1.5">
+                        {fav.vocabulary?.length || 0} 个词汇
+                      </p>
+                    </div>
+                    <button
+                      onClick={e => { e.stopPropagation(); removeFavorite(fav); }}
+                      className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0"
+                      title="移除收藏"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading && <LoadingSpinner text="AI 正在翻译并提取词汇..." />}
 
@@ -150,7 +207,7 @@ export function ReadingPage() {
           </div>
 
           {/* Reading content */}
-          <Card className="mb-6">
+          <Card className="analysis-highlight-card pt-6 mb-6">
             {reading.title && (
               <h2 className="text-xl font-bold mb-4 pb-3 border-b border-border/50">
                 {reading.title}
@@ -189,15 +246,18 @@ export function ReadingPage() {
           {reading.vocabulary.length > 0 && (
             <Card>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold">重点词汇</h3>
+                <div className="analysis-card-header !mb-0">
+                  <Languages className="h-5 w-5 text-emerald-500" />
+                  <h3 className="font-bold">重点词汇</h3>
+                </div>
                 <span className="text-xs text-muted-foreground">{reading.vocabulary.length} 个词汇</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {reading.vocabulary.map((v: VocabItem, i: number) => (
                   <div
                     key={i}
-                    className="bg-muted/60 p-3 rounded-lg hover:bg-muted transition group animate-slide-in"
-                    style={{ animationDelay: `${i * 50}ms` }}
+                    className="analysis-item group animate-slide-in"
+                    style={{ '--item-color': '#10b981', animationDelay: `${i * 50}ms` } as React.CSSProperties}
                   >
                     <div className="flex items-center justify-between">
                       <p className="font-bold text-primary-600 dark:text-primary-400">{v.word}</p>
@@ -212,7 +272,7 @@ export function ReadingPage() {
                     {v.phonetic && <p className="text-xs text-muted-foreground">{v.phonetic}</p>}
                     <p className="text-sm mt-1">{v.meaning}</p>
                     {v.example && (
-                      <p className="text-sm italic mt-1 text-muted-foreground">{v.example}</p>
+                      <p className="text-sm italic mt-1 text-muted-foreground font-serif">{v.example}</p>
                     )}
                   </div>
                 ))}
