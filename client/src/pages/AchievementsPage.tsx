@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import {
   Trophy, Clock, BookOpen, Target, TrendingUp,
   ThumbsUp, AlertTriangle, Lightbulb, Share2,
-  Link2, X, BarChart3,
+  X, BarChart3,
 } from 'lucide-react';
 import type { LearningReport, Word, ReadingContent, TestResult } from '@/types';
 import { AIConfigBanner } from '@/components/settings/AIConfigBanner';
