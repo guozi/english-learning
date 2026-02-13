@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  <!-- Rounded background -->
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <!-- Book body -->
+  <g filter="url(#shadow)">
+    <!-- Left page -->
+    <path d="M28 36 Q28 30 34 30 L60 30 L60 98 L34 98 Q28 98 28 92 Z"
+          fill="url(#page)" opacity="0.95"/>
+    <!-- Right page -->
+    <path d="M68 30 L94 30 Q100 30 100 36 L100 92 Q100 98 94 98 L68 98 Z"
+          fill="#fff" opacity="0.95"/>
+    <!-- Spine -->
+    <path d="M60 30 Q64 34 68 30 L68 98 Q64 94 60 98 Z"
+          fill="#e0e7ff" opacity="0.8"/>
+  </g>
+  <!-- Letter E on left page -->
+  <text x="44" y="74" font-family="Georgia,serif"
+        font-size="38" font-weight="700"
+        fill="#4338ca" text-anchor="middle">E</text>
+  <!-- Text lines on right page -->
+  <line x1="74" y1="48" x2="94" y2="48" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="74" y1="58" x2="90" y2="58" stroke="#c4b5fd" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="74" y1="68" x2="92" y2="68" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="74" y1="78" x2="87" y2="78" stroke="#c4b5fd" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Sparkle accent -->
+  <g fill="#fbbf24">
+    <circle cx="100" cy="26" r="3"/>
+    <circle cx="108" cy="20" r="2"/>
+    <circle cx="106" cy="32" r="1.5"/>
+  </g>
+</svg>
