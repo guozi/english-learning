@@ -385,6 +385,7 @@ class AIService {
             "correctIndex": 正确答案索引（0-3）,
             "explanation": "为什么这是正确答案的解释"
           }
+        ]    
         `;
         
         try {
