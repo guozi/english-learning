@@ -1,58 +1,73 @@
-# 英语学习助手网站
+# English Learning Assistant
 
-## 项目介绍
+基于 LLM 的智能英语学习助手，提供闪卡记忆、句子分析、双语阅读、理解测验、学习成就五大功能模块。
 
-这是一个基于Web的英语学习辅助工具，旨在帮助用户更高效、更有趣地学习英语。该项目提供了多种学习功能，包括闪卡学习、句子分析、双语阅读、理解测试和学习成就系统。
+## 功能
 
-## 功能特点
-
-- **闪卡学习**：通过记忆卡片快速学习和记忆英语单词和短语
-- **句子分析**：深入分析英语句子结构，提高语法理解
-- **双语阅读**：提供中英双语对照阅读材料，增强阅读理解能力
-- **理解测试**：通过测试检验学习成果，巩固所学知识
-- **学习成就**：记录学习进度和成就，增强学习动力
+- **闪卡学习** — AI 生成单词卡片，支持间隔重复
+- **句子分析** — 语法结构拆解、成分标注、中文释义
+- **双语阅读** — AI 生成适合你水平的英文文章，附中文对照
+- **理解测验** — 基于阅读内容自动出题，检验理解程度
+- **学习成就** — 追踪学习进度，生成个性化学习报告
 
 ## 技术栈
 
-- HTML5
-- CSS3 (Tailwind CSS框架)
-- JavaScript
-- Font Awesome图标库
-- Google Fonts字体
-
-## 使用说明
-
-直接在浏览器中打开HTML文件即可使用，无需额外安装依赖。
+| 层 | 技术 |
+|---|------|
+| 前端 | React 19 + TypeScript + Tailwind CSS v4 + Vite |
+| 后端 | Express + TypeScript |
+| AI | DeepSeek API（可配置其他 OpenAI 兼容接口） |
+| 部署 | Vercel（前端静态托管 + Serverless Function） |
 
 ## 项目结构
 
 ```
-/
-├── index.html          # 首页
-├── flashcards.html     # 闪卡学习页面
-├── sentence-analysis.html # 句子分析页面
-├── reading.html        # 双语阅读页面
-├── quiz.html           # 理解测试页面
-├── achievements.html   # 学习成就页面
-├── js/                 # JavaScript文件目录
-│   ├── flashcards.js
-│   ├── sentence-analysis.js
-│   ├── reading.js
-│   ├── quiz.js
-│   └── achievements.js
-└── .gitignore          # Git忽略文件
+├── client/          # React 前端
+│   └── src/
+│       ├── pages/   # 页面组件
+│       ├── components/
+│       ├── hooks/
+│       └── types/
+├── server/          # Express 后端
+│   └── src/
+│       ├── routes/  # API 路由
+│       ├── services/# AI 服务封装
+│       └── middleware/
+├── api/             # Vercel Serverless 入口
+└── vercel.json
 ```
 
-## 贡献指南
+## 本地开发
 
-欢迎提交问题和改进建议。如需贡献代码，请遵循以下步骤：
+### 前置条件
 
-1. Fork本仓库
-2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交您的更改 (`git commit -m '添加某个特性'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开一个Pull Request
+- Node.js >= 18
 
-## 许可证
+### 启动
 
-本项目采用MIT许可证 - 详情请参阅LICENSE文件
+```bash
+# 安装依赖
+cd server && npm install && cd ../client && npm install && cd ..
+
+# 启动后端（端口 3001）
+npm run dev:server
+
+# 另开终端，启动前端（端口 5173）
+npm run dev:client
+```
+
+前端通过 Vite proxy 将 `/api` 请求转发到后端。
+
+启动后在页面右上角点击设置图标，配置 AI 服务（API Key、Base URL、Model）即可使用全部功能。支持 DeepSeek、OpenAI、Groq、Moonshot 等 OpenAI 兼容接口。
+
+## 部署
+
+项目已适配 Vercel 部署：
+
+1. 在 Vercel 导入项目
+2. 部署即可 — 前端静态托管，后端自动转为 Serverless Function
+3. 用户在页面上自行配置 AI 服务
+
+## License
+
+MIT
